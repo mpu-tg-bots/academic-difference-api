@@ -1,0 +1,14 @@
+[run]
+source = api
+omit =
+    */migrations/*
+    */tests/*
+    */apps.py
+    */admin.py
+    */urls.py
+    api/__init__.py
+
+[report]
+show_missing = True
+skip_covered = False
+fail_under = 90
