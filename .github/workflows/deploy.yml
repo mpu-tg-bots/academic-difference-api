@@ -29,6 +29,9 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
           chmod 600 private_key.pem
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Install Ansible
         shell: bash
         run: |
@@ -39,6 +42,12 @@ jobs:
         run: |
           echo "[vps]" > inventory.ini
           echo "${{ secrets.VPS_IP }}" >> inventory.ini
+
+      - name: Build Docker image and export as .tar.gz
+        run: |
+          docker buildx build --platform linux/amd64 -f ./infra/Dockerfile -t academic-api:$(IMAGE_TAG) .
+          mkdir -p build
+          docker save academic-api:$(IMAGE_TAG) | gzip > build/academic-api.tar.gz
 
       - name: Run Ansible Playbook
         env:
