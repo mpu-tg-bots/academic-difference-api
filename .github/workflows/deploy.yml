@@ -32,12 +32,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Install Ansible
-        shell: bash
-        run: |
-          sudo apt update
-          sudo apt install -y ansible
-
       - name: Create dynamic inventory file
         run: |
           echo "[vps]" > inventory.ini
@@ -45,9 +39,9 @@ jobs:
 
       - name: Build Docker image and export as .tar.gz
         run: |
-          docker buildx build --platform linux/amd64 --load -f ./infra/Dockerfile -t academic-api:$(IMAGE_TAG) .
+          docker buildx build --platform linux/amd64 --load -f ./infra/Dockerfile -t academic-api:$IMAGE_TAG .
           mkdir -p build
-          docker save academic-api:$(IMAGE_TAG) | gzip > build/academic-api.tar.gz
+          docker save academic-api:$IMAGE_TAG | gzip > build/academic-api.tar.gz
 
       - name: Run Ansible Playbook
         env:
