@@ -32,12 +32,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Install Ansible
-        shell: bash
-        run: |
-          sudo apt update
-          sudo apt install -y ansible
-
       - name: Create dynamic inventory file
         run: |
           echo "[vps]" > inventory.ini
