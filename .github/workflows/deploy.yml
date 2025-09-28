@@ -1,12 +1,6 @@
 name: Deploy to Production
 
-on:
-  workflow_dispatch:
-    inputs:
-      commit_sha:
-        description: 'Commit SHA to build (default: latest)'
-        required: false
-        default: ''
+on: workflow_dispatch
 
 jobs:
   deploy:
@@ -17,7 +11,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.commit_sha || github.sha }}
+          fetch-depth: 0
 
       - name: Generate image tag
         id: tag
