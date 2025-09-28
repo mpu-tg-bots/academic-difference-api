@@ -1,0 +1,53 @@
+# Git version control files
+.git
+.gitignore
+
+# IDE and editor configuration
+.idea/
+.vscode/
+
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache and bytecode files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local database files
+*.sqlite3
+db.sqlite3
+
+# Local secrets and environment files
+.env
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Local instance and media files
+instance/
+media/
+
+# Pre-commit cache
+.pre-commit-cache/
+
+# Ansible and infrastructure related files that are not part of the app
+infra/
+ansible/
+
+# Documentation
+docs/
+
+# Service files
+Makefile
+*.md

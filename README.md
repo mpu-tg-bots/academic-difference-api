@@ -4,127 +4,66 @@
 
 ## ✨ Возможности
 
-* **REST API**: Полный набор CRUD-операций для студентов, кафедр, предметов и академических расхождений.
-* **Аутентификация**: Используется JWT (JSON Web Tokens) для безопасного доступа к API.
-* **Процесс разработки**: Проект следует стратегии **Trunk-Based Development** с обязательными проверками через Pull
+- **REST API**: Полный набор CRUD-операций для студентов, кафедр, предметов и академических расхождений.
+- **Инфраструктура как код**: Весь процесс развертывания автоматизирован с помощью Ansible и Docker.
+- **Процесс разработки**: Проект следует стратегии **Trunk-Based Development** с обязательными проверками через Pull
   Request'ы.
-* **Стиль коммитов**: Внедрена проверка на соответствие
+- **CI/CD**: Настроен pipeline на GitHub Actions для автоматических проверок, сборки Docker-образа и ручного деплоя.
+- **Стиль коммитов**: Внедрена проверка на соответствие
   стилю [Conventional Commits](https://www.conventionalcommits.org/).
-* **Качество кода**: Настроен `pre-commit` с хуками для `black`, `isort` и `pylint`.
-* **Тестирование**: Высокое покрытие кода тестами с использованием `pytest` и `factory-boy`.
-* **CI/CD**: Настроен pipeline на GitHub Actions для автоматических проверок.
-* **Docker-ready**: Проект полностью готов к контейнеризации и развертыванию.
+- **Качество кода**: Настроен `pre-commit` с хуками для `black`, `isort` и `pylint`.
+- **Тестирование**: Высокое покрытие кода тестами с использованием `pytest` и `factory-boy`.
 
-## 🚀 Процесс разработки (Trunk-Based Development)
+## 🚀 Процесс разработки и развертывания
 
-Этот проект использует методологию **Trunk-Based Development**. Это означает, что все изменения интегрируются в основную
-ветку (`trunk`) через короткоживущие feature-ветки и **Pull Request'ы (PR)**.
-
-**Прямые коммиты в `trunk` запрещены** с помощью правил защиты веток (Branch Protection Rules).
-
-### Флоу работы над задачей:
-
-1. **Создайте ветку** от актуальной версии `trunk`:
-   ```bash
-   git checkout trunk
-   git pull
-   git checkout -b <type>/<short-description>
-   # Например: git checkout -b feat/add-student-search
-   ```
-
-2. **Сделайте изменения** и закоммитьте их, следуя стилю [Conventional Commits](https://www.conventionalcommits.org/):
-   ```bash
-   # ...пишете код...
-   git add .
-   git commit -m "feat: implement search logic for students"
-   # или используйте `cz commit` для помощи
-   ```
-
-3. **Отправьте ветку** в удаленный репозиторий и создайте Pull Request на GitHub.
-
-4. **Дождитесь прохождения автоматических проверок**: CI-пайплайн (GitHub Actions) автоматически запустит линтеры, тесты
-   и проверку сообщений коммитов.
-
-5. **Выполните слияние (Merge)**: После успешного прохождения всех проверок (и код-ревью, если требуется), ваш PR будет
-   влит в `trunk`. Feature-ветка будет удалена автоматически.
-
-## 📦 Локальный запуск (для разработки)
-
-### Предварительные требования
-
-* [Python 3.11+](https://www.python.org/)
-* [Git](https://git-scm.com/)
-* [Docker](https://www.docker.com/products/docker-desktop/) (опционально)
-
-### Установка и запуск
+### 1. Локальная разработка
 
 1. **Клонируйте репозиторий** и перейдите в него.
+2. **Настройте окружение** (рекомендуется `docker-compose`):
+    - Создайте файл `.env` (можно скопировать из `.env.example`).
+    - Запустите: `docker-compose -f docker-compose.dev.yml up --build -d`
+3. **Установите pre-commit хуки**: `pre-commit install --hook-type pre-commit --hook-type commit-msg`
+4. **Создайте feature-ветку** (`git checkout -b feat/my-new-feature`).
+5. **Пишите код и коммиты**, следуя [Conventional Commits](https://www.conventionalcommits.org/). Используйте
+   `cz commit` для помощи.
+6. **Отправьте ветку** (`git push`) и создайте Pull Request в `trunk`.
 
-2. **Создайте и активируйте виртуальное окружение:**
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate
-   ```
+### 2. CI/CD Процесс
 
-3. **Установите зависимости:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+- **На каждый Pull Request**: Запускается `ci.yml` workflow, который выполняет линтинг коммитов, линтинг кода и
+  прогоняет тесты на нескольких версиях Python.
+- **На ручной запуск**: Запускается `deploy.yml` workflow, который позаботится о том, чтобы всё оказалось на сервере и
+  настроено
 
-4. **Установите pre-commit хуки (важный шаг!):**
-   Эта команда установит хуки для автоматической проверки кода (`pre-commit`) и сообщений коммитов (`commit-msg`). **Это
-   нужно сделать один раз** после клонирования репозитория.
-   ```bash
-   pre-commit install --hook-type pre-commit --hook-type commit-msg
-   ```
+### 3. Развертывание (Deployment)
 
-5. **Настройте переменные окружения:**
-   ```bash
-   cp .env.example .env
-   ```
+Развертывание производится **только** через GitHub Actions.
 
-6. **Примените миграции и создайте суперпользователя:**
-   ```bash
-   python manage.py migrate
-   python manage.py createsuperuser
-   ```
+1. **Подготовка:**
+    - Убедитесь, что последняя версия кода находится в ветке `trunk`.
+    - Убедитесь, что в `Settings -> Secrets and variables -> Actions` вашего репозитория настроены все необходимые
+      секреты (`VPS_IP`, `DOMAIN_NAME`, `ANSIBLE_VAULT_PASSWORD` и т.д.).
 
-7. **Запустите сервер для разработки:**
-   ```bash
-   python manage.py runserver
-   ```
-   Проект будет доступен по адресу `http://127.0.0.1:8000/`.
+2. **Запуск деплоя:**
+    - Перейдите в раздел **Actions** вашего репозитория.
+    - В списке слева выберите workflow **"Deploy to Production"**.
+    - Нажмите на кнопку **"Run workflow"** справа.
+    - Введите **ID запуска** и **тег образа**, который вы хотите развернуть.
+    - Нажмите зеленую кнопку **"Run workflow"**.
 
-## 🛠 Инструменты и качество кода
+Ansible автоматически подключится к серверу, передаст новый образ и обновит приложение.
+
+## 🛠 Инструменты для разработки
 
 #### Тестирование
 
-* **Запуск всех тестов**: `pytest`
-* **Запуск с отчетом о покрытии**: `pytest --cov` (использует настройки из `.coveragerc`)
-
-#### Стиль коммитов
-
-Проект использует [Conventional Commits](https://www.conventionalcommits.org/). Для упрощения создания коммитов
-используйте `cz commit` вместо `git commit`.
+- **Запуск**: `pytest`
+- **Запуск с отчетом о покрытии**: `pytest --cov` (использует настройки из `.coveragerc`)
 
 #### Pre-commit хуки
 
-После установки (см. раздел "Локальный запуск") хуки будут запускаться автоматически перед каждым коммитом. Они
-проверяют код с помощью `black`, `isort`, `pylint` и валидируют сообщение коммита через `commitizen`.
-
-## 🐳 Запуск через Docker
-
-1. **Сборка образа**: `docker build -t academic-api .`
-2. **Запуск контейнера**:
-   ```bash
-   docker run --name academic-api-container -p 8000:8000 \
-     -v ./db.sqlite3:/home/app/web/db.sqlite3 \
-     -e SECRET_KEY="your-local-secret-key" \
-     -e DEBUG=True \
-     -e ALLOWED_HOSTS="127.0.0.1,localhost" \
-     --rm -it academic-api
-   ```
-3. **Миграции** (в отдельном терминале): `docker exec -it academic-api-container python manage.py migrate`
+Хуки (`black`, `isort`, `pylint`, `commitizen`) установливаются командой
+`pre-commit install --hook-type pre-commit --hook-type commit-msg` и запускаются автоматически перед каждым коммитом.
 
 ## 📄 API Документация
 

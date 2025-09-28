@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: academic-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env.pg.prod
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  academic-api:
+    image: academic-api:${IMAGE_TAG:-latest}
+    container_name: academic-api-app
+    command: |
+      sh -c "python manage.py collectstatic --noinput
+             python manage.py migrate --noinput
+             python manage.py auto_createsuperuser --username=${DJANGO_SUPERUSER_USERNAME} --email=${DJANGO_SUPERUSER_EMAIL} --password=${DJANGO_SUPERUSER_PASSWORD}
+             gunicorn --workers=3 --bind=0.0.0.0:8000 core.wsgi:application"
+    env_file:
+      - ./.env.academic-api.prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - staticfiles:/opt/app/staticfiles
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: academic-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - staticfiles:/srv/static:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - academic-api
+
+volumes:
+  staticfiles:
+  postgres_data:
+  caddy_data:
+  caddy_config:

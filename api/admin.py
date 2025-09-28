@@ -11,7 +11,7 @@ class StudentAdmin(admin.ModelAdmin):
 
     list_display = ("full_name", "email", "phone", "telegram_id")
     search_fields = ("full_name", "email", "telegram_id")
-    readonly_fields = ("telegram_id", "created_at", "updated_at")
+    readonly_fields = ("created_at", "updated_at")
 
 
 @admin.register(Department)

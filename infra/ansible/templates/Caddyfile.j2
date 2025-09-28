@@ -1,0 +1,14 @@
+{{ DOMAIN_NAME }}, www.{{ DOMAIN_NAME }} {
+    encode gzip
+
+    @static path /static/*
+
+    handle_path /static/* {
+        root * /srv/static
+        file_server
+    }
+
+    handle {
+        reverse_proxy academic-api:8000
+    }
+}

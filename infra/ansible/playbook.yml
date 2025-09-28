@@ -1,0 +1,81 @@
+- name: Deploy Academic API
+  hosts: vps
+  become: yes
+  vars_files:
+    - vars/vault.yml
+
+  tasks:
+    - name: Update apt cache and install system dependencies
+      apt:
+        name:
+          - docker.io
+          - docker-compose-v2
+        state: present
+        update_cache: yes
+
+    - name: Create project directory on server
+      file:
+        path: /opt/academic-api
+        state: directory
+        owner: developer
+        group: developer
+        mode: '0755'
+
+    - name: Copy Docker Compose file
+      copy:
+        src: "{{playbook_dir}}/compose.yml"
+        dest: /opt/academic-api/compose.yml
+
+    - name: Copy production environment file from template for postgres
+      template:
+        src: templates/.env.pg.prod.j2
+        dest: /opt/academic-api/.env.pg.prod
+
+    - name: Copy production environment file from template for academic api
+      template:
+        src: templates/.env.academic-api.prod.j2
+        dest: /opt/academic-api/.env.academic-api.prod
+
+    - name: Copy Caddyfile from template
+      template:
+        src: templates/Caddyfile.j2
+        dest: /opt/academic-api/Caddyfile
+
+    - name: Pull required Docker images
+      community.docker.docker_image:
+        name: "{{item}}"
+        source: pull
+      loop:
+        - "postgres:18-alpine"
+        - "caddy:2-alpine"
+
+    - name: Transfer Docker image archive
+      copy:
+        src: "{{playbook_dir}}/../../build/academic-api.tar.gz"
+        dest: "/opt/academic-api/academic-api.tar.gz"
+
+    - name: Load Docker image from archive
+      shell: "docker load -i /opt/academic-api/academic-api.tar.gz"
+      changed_when: false
+
+    - name: Deploy services with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: /opt/academic-api
+        state: present
+        pull: never
+        remove_orphans: yes
+      environment:
+        IMAGE_TAG: "{{ image_tag }}"
+        POSTGRES_USER: "{{ POSTGRES_USER }}"
+        POSTGRES_DB: "{{ POSTGRES_DB }}"
+        POSTGRES_PASSWORD: "{{ POSTGRES_PASSWORD }}"
+        DJANGO_SUPERUSER_USERNAME: "{{ DJANGO_SUPERUSER_USERNAME }}"
+        DJANGO_SUPERUSER_EMAIL: "{{ DJANGO_SUPERUSER_EMAIL }}"
+        DJANGO_SUPERUSER_PASSWORD: "{{ DJANGO_SUPERUSER_PASSWORD }}"
+
+
+    - name: Clean up dangling Docker images
+      community.docker.docker_prune:
+        images: true
+        images_filters:
+          dangling: true
