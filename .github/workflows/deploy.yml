@@ -45,13 +45,13 @@ jobs:
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
           ANSIBLE_HOST_KEY_CHECKING: "False"
         run: |
-          ansible-playbook infra/ansible/playbook.yml
-          -i inventory.ini
-          --private-key private_key.pem
-          -u ${{ secrets.ANSIBLE_USER }}
+          ansible-playbook infra/ansible/playbook.yml \
+          -i inventory.ini \
+          --private-key private_key.pem \
+          -u ${{ secrets.ANSIBLE_USER }} \
           --extra-vars "
             image_tag='$(date +%Y%m%d)-$(git rev-parse --short HEAD)'
             DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}
             ALLOWED_HOSTS='${{ secrets.ALLOWED_HOSTS }}'
-          "
+          " \
           --vault-password-file <(echo "$ANSIBLE_VAULT_PASSWORD")
