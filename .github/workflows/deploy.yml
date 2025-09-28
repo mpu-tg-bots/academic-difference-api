@@ -45,7 +45,7 @@ jobs:
 
       - name: Build Docker image and export as .tar.gz
         run: |
-          docker buildx build --platform linux/amd64 --load -f ./infra/Dockerfile -t academic-api:$(IMAGE_TAG) .
+          docker buildx build --platform linux/amd64 --load -f ./infra/Dockerfile -t academic-api:$IMAGE_TAG .
           mkdir -p build
           docker save academic-api:$(IMAGE_TAG) | gzip > build/academic-api.tar.gz
 
