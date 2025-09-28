@@ -1,0 +1,38 @@
+- name: Teardown Academic API
+  hosts: vps
+  become: yes
+
+  tasks:
+    - name: Stop and remove ALL Docker Compose services and volumes
+      community.docker.docker_compose_v2:
+        project_src: /opt/academic-api
+        state: absent
+        remove_volumes: yes
+        remove_orphans: yes
+      ignore_errors: yes
+
+    - name: Remove the entire project directory
+      file:
+        path: /opt/academic-api
+        state: absent
+
+    - name: Find all 'academic-api' Docker images
+      command: "docker images -q 'academic-api:*'"
+      register: images_to_remove
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Remove related 'academic-api' Docker images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        state: absent
+        force_absent: yes
+      loop: "{{ images_to_remove.stdout_lines }}"
+      when: images_to_remove.stdout_lines | length > 0
+      ignore_errors: yes
+
+    - name: Prune any remaining dangling images
+      community.docker.docker_prune:
+        images: true
+        images_filters:
+          dangling: true
