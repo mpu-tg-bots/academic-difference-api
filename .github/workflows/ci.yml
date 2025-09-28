@@ -19,7 +19,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install Commitizen
         run: pip install commitizen
@@ -31,27 +31,37 @@ jobs:
   build-and-test:
     runs-on: ubuntu-22.04
 
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [ "3.11", "3.12" ]
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: academic_user_dev
+          POSTGRES_PASSWORD: academic_user_dev
+          POSTGRES_DB: academic_db_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.12'
 
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
@@ -63,6 +73,11 @@ jobs:
           SECRET_KEY: "dummy-secret-key-for-linting"
           DEBUG: "True"
           ALLOWED_HOSTS: "localhost"
+          POSTGRES_USER: academic_user_dev
+          POSTGRES_DB: academic_db_dev
+          POSTGRES_PASSWORD: academic_user_dev
+          POSTGRES_PORT: 5432
+          POSTGRES_HOST: localhost
         run: |
           black --check .
           isort --check-only .
@@ -72,6 +87,11 @@ jobs:
         env:
           SECRET_KEY: "dummy-secret-key-for-linting"
           DEBUG: "True"
-          ALLOWED_HOSTS: "localhost"
+          ALLOWED_HOSTS: localhost
+          POSTGRES_USER: academic_user_dev
+          POSTGRES_DB: academic_db_dev
+          POSTGRES_PASSWORD: academic_user_dev
+          POSTGRES_PORT: 5432
+          POSTGRES_HOST: localhost
         run: |
           pytest --cov=api --cov-report=term-missing
