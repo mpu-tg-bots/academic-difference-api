@@ -1,6 +1,8 @@
 """Интеграционные тесты для API эндпоинтов."""
 
 from django.urls import reverse
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -13,12 +15,17 @@ from .factories import (
     UserFactory,
 )
 
+User = get_user_model()
+
 
 class StudentAPITests(APITestCase):
     """Тесты для API эндпоинта /students/"""
 
     def setUp(self):
-        self.user = UserFactory()
+        self.user, _ = User.objects.get_or_create(
+            username=settings.TG_BOT_USERNAME,
+            defaults={"email": "bot@example.com", "password": "test123"},
+        )
         self.client.force_authenticate(user=self.user)
         self.list_url = reverse("student-list")
 
@@ -46,7 +53,10 @@ class SubjectAPITests(APITestCase):
     """Тесты для API эндпоинта /subjects/"""
 
     def setUp(self):
-        self.user = UserFactory()
+        self.user, _ = User.objects.get_or_create(
+            username=settings.TG_BOT_USERNAME,
+            defaults={"email": "bot@example.com", "password": "test123"},
+        )
         self.client.force_authenticate(user=self.user)
         self.department = DepartmentFactory()
         self.list_url = reverse("subject-list")
@@ -63,7 +73,10 @@ class AcademicDifferenceAPITests(APITestCase):
     """Тесты для API эндпоинта /academic-differences/"""
 
     def setUp(self):
-        self.user = UserFactory()
+        self.user, _ = User.objects.get_or_create(
+            username=settings.TG_BOT_USERNAME,
+            defaults={"email": "bot@example.com", "password": "test123"},
+        )
         self.client.force_authenticate(user=self.user)
 
         self.difference = AcademicDifferenceFactory()
@@ -77,16 +90,13 @@ class AcademicDifferenceAPITests(APITestCase):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data.get("results")), 1)
-        # ИСПРАВЛЕНО: Длинная строка обернута в скобки для переноса
         self.assertEqual(
             response.data["results"][0]["student"]["id"],
             self.difference.student.id,
         )
 
     def test_create_difference(self):
-        """
-        POST /academic-differences/ -> 201 Created (использует WriteSerializer)
-        """
+        """POST /academic-differences/ -> 201 Created (использует WriteSerializer)"""
         student = StudentFactory()
         subject = SubjectFactory()
         payload = {
@@ -98,9 +108,7 @@ class AcademicDifferenceAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_update_difference(self):
-        """
-        PUT /academic-differences/{id}/ -> 200 OK (использует WriteSerializer)
-        """
+        """PUT /academic-differences/{id}/ -> 200 OK (использует WriteSerializer)"""
         student = StudentFactory()
         subject = SubjectFactory()
         payload = {
@@ -117,9 +125,7 @@ class AcademicDifferenceAPITests(APITestCase):
         self.assertEqual(self.difference.student, student)
 
     def test_partial_update_difference(self):
-        """
-        PATCH /academic-differences/{id}/ -> 200 OK (использует WriteSerializer)
-        """
+        """PATCH /academic-differences/{id}/ -> 200 OK (использует WriteSerializer)"""
         payload = {"is_closed": True}
         response = self.client.patch(self.detail_url, payload)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
