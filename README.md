@@ -25,8 +25,8 @@
 
 1. **Клонируйте репозиторий** и перейдите в него.
 2. **Настройте окружение** (рекомендуется `docker-compose`):
-    - Создайте файл `.env` (можно скопировать из `.env.example`).
-    - Запустите: `docker-compose -f docker-compose.dev.yml up --build -d`
+   - Создайте файл `.env` (можно скопировать из `.env.example`).
+   - Запустите: `docker-compose -f compose.yml up --build -d`
 3. **Установите pre-commit хуки**: `pre-commit install --hook-type pre-commit --hook-type commit-msg`
 4. **Создайте feature-ветку** (`git checkout -b feat/my-new-feature`).
 5. **Пишите код и коммиты**, следуя [Conventional Commits](https://www.conventionalcommits.org/). Используйте
@@ -48,16 +48,20 @@
 Для редактирования зашифрованного файла используется команда `ansible-vault`.
 
 1. **Редактирование секретов:**
+
    ```bash
    ansible-vault edit infra/ansible/vars/vault.yml
    ```
+
    Ansible запросит пароль от Vault. После ввода пароля откроется редактор, где вы можете изменить секреты.
 
 2. **Создание нового зашифрованного файла:**
    Если вы создаете новый проект, сначала создайте файл:
+
    ```bash
    ansible-vault create infra/ansible/vars/vault.yml
    ```
+
    Затем введите пароль и добавьте свои секреты.
 
 3. **Просмотр содержимого:**
@@ -74,16 +78,19 @@
 следующие шаги:
 
 1. **Добавьте переменную в `infra/ansible/vars/vault.yml`:**
+
    ```yaml
    # infra/ansible/vars/vault.yml
    SECRET_KEY: "..."
    # ... другие секреты
    NEW_API_KEY: "your-new-api-key-here" # <--- Добавьте новую переменную сюда
    ```
+
    (Используйте `ansible-vault edit` для этого).
 
 2. **Используйте переменную в шаблонах Ansible:**
    В шаблонах (например, `templates/.env.academic-api.prod.j2`) используйте переменную так же, как и другие:
+
    ```
    # templates/.env.academic-api.prod.j2
    NEW_API_KEY={{ NEW_API_KEY }}
@@ -127,5 +134,5 @@
 
 После запуска сервера документация API доступна по адресам:
 
-* **Swagger UI**: `http://127.0.0.1:8000/api/v1/schema/swagger-ui/`
-* **ReDoc**: `http://127.0.0.1:8000/api/v1/schema/redoc/`
+- **Swagger UI**: `http://127.0.0.1:8000/api/v1/schema/swagger-ui/`
+- **ReDoc**: `http://127.0.0.1:8000/api/v1/schema/redoc/`
