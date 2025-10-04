@@ -20,9 +20,7 @@ class TelegramStudentCreateSerializer(serializers.Serializer):
 
     def validate_telegram_id(self, value):
         if Student.objects.filter(telegram_id=value).exists():
-            raise serializers.ValidationError(
-                "Telegram ID уже зарегистрирован"
-            )
+            raise serializers.ValidationError("Telegram ID уже зарегистрирован")
         return value
 
     def create(self, validated_data):
@@ -103,9 +101,7 @@ class AcademicDifferenceReadSerializer(serializers.ModelSerializer):
 
     student = StudentSerializer(read_only=True)
     subject = SubjectSerializer(read_only=True)
-    department = serializers.CharField(
-        source="department.name", read_only=True
-    )
+    department = serializers.CharField(source="department.name", read_only=True)
 
     class Meta:
         """Мета-опции для AcademicDifferenceReadSerializer."""

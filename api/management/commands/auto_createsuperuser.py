@@ -19,9 +19,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--username", type=str, help="Username for the superuser"
         )
-        parser.add_argument(
-            "--email", type=str, help="Email for the superuser"
-        )
+        parser.add_argument("--email", type=str, help="Email for the superuser")
         parser.add_argument(
             "--password", type=str, help="Password for the superuser"
         )

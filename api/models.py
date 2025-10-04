@@ -32,9 +32,7 @@ class Student(models.Model):
         ),
     )
 
-    created_at = models.DateTimeField(
-        "Дата создания записи", auto_now_add=True
-    )
+    created_at = models.DateTimeField("Дата создания записи", auto_now_add=True)
     updated_at = models.DateTimeField(
         "Дата последнего обновления", auto_now=True
     )
@@ -60,9 +58,7 @@ class Department(models.Model):
         unique=True,
     )
 
-    created_at = models.DateTimeField(
-        "Дата создания записи", auto_now_add=True
-    )
+    created_at = models.DateTimeField("Дата создания записи", auto_now_add=True)
     updated_at = models.DateTimeField(
         "Дата последнего обновления", auto_now=True
     )
@@ -94,9 +90,7 @@ class Subject(models.Model):
         verbose_name="Кафедра",
     )
 
-    created_at = models.DateTimeField(
-        "Дата создания записи", auto_now_add=True
-    )
+    created_at = models.DateTimeField("Дата создания записи", auto_now_add=True)
     updated_at = models.DateTimeField(
         "Дата последнего обновления", auto_now=True
     )
@@ -146,9 +140,7 @@ class AcademicDifference(models.Model):
         help_text="Отметьте, если расхождение устранено",
     )
 
-    created_at = models.DateTimeField(
-        "Дата создания записи", auto_now_add=True
-    )
+    created_at = models.DateTimeField("Дата создания записи", auto_now_add=True)
     updated_at = models.DateTimeField(
         "Дата последнего обновления", auto_now=True
     )
