@@ -12,7 +12,6 @@ from .factories import (
     DepartmentFactory,
     StudentFactory,
     SubjectFactory,
-    UserFactory,
 )
 
 User = get_user_model()
@@ -63,7 +62,10 @@ class SubjectAPITests(APITestCase):
 
     def test_create_subject(self):
         """POST /subjects/ -> 201 Created"""
-        payload = {"name": "Новый Предмет", "department_id": self.department.id}
+        payload = {
+            "name": "Новый Предмет",
+            "department_id": self.department.id,
+        }
         response = self.client.post(self.list_url, payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["name"], "Новый Предмет")
