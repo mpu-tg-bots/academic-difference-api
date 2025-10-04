@@ -1,8 +1,10 @@
 """ViewSet'ы для API академических расхождений."""
 
-from rest_framework import permissions, viewsets, status
-from rest_framework.views import APIView
+from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from api.permissions import IsBotOnly
 from api.serializers import TelegramStudentCreateSerializer
 
 from .models import AcademicDifference, Department, Student, Subject
@@ -13,7 +15,6 @@ from .serializers import (
     StudentSerializer,
     SubjectSerializer,
 )
-from api.permissions import IsBotOnly
 
 
 class StudentViewSet(viewsets.ModelViewSet):

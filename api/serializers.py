@@ -1,8 +1,9 @@
 """Сериализаторы для моделей приложения API."""
 
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from rest_framework import serializers
+
 from .models import AcademicDifference, Department, Student, Subject
 
 User = get_user_model()

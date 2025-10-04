@@ -1,6 +1,7 @@
-from rest_framework import permissions
-from django.conf import settings
 import logging
+
+from django.conf import settings
+from rest_framework import permissions
 
 logger = logging.getLogger(__name__)
 
