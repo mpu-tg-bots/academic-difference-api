@@ -98,7 +98,8 @@ class AcademicDifferenceAPITests(APITestCase):
         )
 
     def test_create_difference(self):
-        """POST /academic-differences/ -> 201 Created (использует WriteSerializer)"""
+        """POST /academic-differences/ -> 201 Created
+        (использует WriteSerializer)"""
         student = StudentFactory()
         subject = SubjectFactory()
         payload = {
@@ -110,7 +111,8 @@ class AcademicDifferenceAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_update_difference(self):
-        """PUT /academic-differences/{id}/ -> 200 OK (использует WriteSerializer)"""
+        """PUT /academic-differences/{id}/ -> 200 OK
+        (использует WriteSerializer)"""
         student = StudentFactory()
         subject = SubjectFactory()
         payload = {
@@ -127,7 +129,8 @@ class AcademicDifferenceAPITests(APITestCase):
         self.assertEqual(self.difference.student, student)
 
     def test_partial_update_difference(self):
-        """PATCH /academic-differences/{id}/ -> 200 OK (использует WriteSerializer)"""
+        """PATCH /academic-differences/{id}/ -> 200 OK
+        (использует WriteSerializer)"""
         payload = {"is_closed": True}
         response = self.client.patch(self.detail_url, payload)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
