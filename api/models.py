@@ -6,6 +6,7 @@
 """
 
 from django.db import models
+from django.conf import settings
 
 
 class Student(models.Model):
@@ -104,6 +105,14 @@ class Subject(models.Model):
     def __str__(self):
         """Строковое представление объекта предмета."""
         return self.name
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="student",
+        null=True,
+        blank=True,
+    )
 
 
 class AcademicDifference(models.Model):

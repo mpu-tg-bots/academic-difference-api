@@ -1,8 +1,43 @@
 """Сериализаторы для моделей приложения API."""
 
 from rest_framework import serializers
-
+from django.contrib.auth import get_user_model
+from django.db import transaction
 from .models import AcademicDifference, Department, Student, Subject
+
+User = get_user_model()
+
+
+class TelegramStudentCreateSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+    full_name = serializers.CharField(max_length=255)
+    telegram_id = serializers.IntegerField()
+
+    def validate_telegram_id(self, value):
+        if Student.objects.filter(telegram_id=value).exists():
+            raise serializers.ValidationError("Telegram ID уже зарегистрирован")
+        return value
+
+    def create(self, validated_data):
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=validated_data["username"],
+                email=validated_data["email"],
+                password=validated_data["password"],
+                is_staff=False,
+                is_superuser=False,
+            )
+
+            student = Student.objects.create(
+                user=user,
+                full_name=validated_data["full_name"],
+                email=validated_data["email"],
+                telegram_id=validated_data["telegram_id"],
+            )
+
+        return student
 
 
 class StudentSerializer(serializers.ModelSerializer):
