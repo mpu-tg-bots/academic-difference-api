@@ -146,8 +146,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-TG_BOT_USERNAME = config("TG_BOT_USERNAME")
-TG_BOT_EMAIL = config("TG_BOT_EMAIL")
-TG_BOT_PASSWORD = config("TG_BOT_PASSWORD")
+TG_BOT_USERNAME = config("TG_BOT_USERNAME", default="test_bot")
+TG_BOT_EMAIL = config("TG_BOT_EMAIL", default="bot@example.com")
+TG_BOT_PASSWORD = config("TG_BOT_PASSWORD", default="test123")
 TG_BOT_GIVE_PERMS = config("TG_BOT_GIVE_PERMS", default=True, cast=bool)
 TG_BOT_TARGET_APPS = config("TG_BOT_TARGET_APPS", default="")
