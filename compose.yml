@@ -7,7 +7,7 @@ services:
     env_file:
       - ./.env
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -21,6 +21,7 @@ services:
     command: |
       sh -c "python manage.py migrate --noinput
              python manage.py auto_createsuperuser --username=${DJANGO_SUPERUSER_USERNAME} --email=${DJANGO_SUPERUSER_EMAIL} --password=${DJANGO_SUPERUSER_PASSWORD}
+             python manage.py auto_createtgbotuser
              python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"

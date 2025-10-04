@@ -7,7 +7,7 @@ services:
     env_file:
       - ./.env.pg.prod
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -20,6 +20,7 @@ services:
       sh -c "python manage.py collectstatic --noinput
              python manage.py migrate --noinput
              python manage.py auto_createsuperuser --username=${DJANGO_SUPERUSER_USERNAME} --email=${DJANGO_SUPERUSER_EMAIL} --password=${DJANGO_SUPERUSER_PASSWORD}
+             python manage.py auto_createtgbotuser
              gunicorn --workers=3 --bind=0.0.0.0:8000 core.wsgi:application"
     env_file:
       - ./.env.academic-api.prod
