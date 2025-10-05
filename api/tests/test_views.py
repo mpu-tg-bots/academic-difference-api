@@ -192,6 +192,17 @@ class TelegramStudentAPITests(APITestCase):
 
     def test_create_student_duplicate_telegram_id(self):
         """POST с уже существующим telegram_id -> 400 Bad Request"""
+        existing_user = User.objects.create_user(
+            username="existing_user",
+            email="existing@example.com",
+            password="testpassword",
+        )
+        Student.objects.create(
+            user=existing_user,
+            full_name="Existing Student",
+            email="existing@example.com",
+            telegram_id=123456789,
+        )
 
         payload = {
             "username": "another_user",
@@ -201,5 +212,6 @@ class TelegramStudentAPITests(APITestCase):
             "telegram_id": 123456789,
         }
         response = self.client.post(self.url, payload, format="json")
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("telegram_id", response.data)
