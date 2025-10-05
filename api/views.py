@@ -4,7 +4,7 @@ from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.permissions import IsBotOnly
+from api.permissions import IsBotOrAdminOnly
 from api.serializers import TelegramStudentCreateSerializer
 
 from .models import AcademicDifference, Department, Student, Subject
@@ -24,7 +24,7 @@ class StudentViewSet(viewsets.ModelViewSet):
 
     queryset = Student.objects.all().order_by("full_name")
     serializer_class = StudentSerializer
-    permission_classes = [IsBotOnly]
+    permission_classes = [IsBotOrAdminOnly]
 
 
 class DepartmentViewSet(viewsets.ModelViewSet):
@@ -34,7 +34,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
 
     queryset = Department.objects.all().order_by("name")
     serializer_class = DepartmentSerializer
-    permission_classes = [IsBotOnly]
+    permission_classes = [IsBotOrAdminOnly]
 
 
 class SubjectViewSet(viewsets.ModelViewSet):
@@ -46,7 +46,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
         Subject.objects.select_related("department").all().order_by("name")
     )
     serializer_class = SubjectSerializer
-    permission_classes = [IsBotOnly]
+    permission_classes = [IsBotOrAdminOnly]
     filterset_fields = ["department"]
 
 
@@ -59,7 +59,7 @@ class AcademicDifferenceViewSet(viewsets.ModelViewSet):
     queryset = AcademicDifference.objects.select_related(
         "student", "subject", "subject__department"
     ).all()
-    permission_classes = [IsBotOnly]
+    permission_classes = [IsBotOrAdminOnly]
 
     filterset_fields = ["student", "subject", "is_closed"]
 

@@ -48,6 +48,14 @@ class Student(models.Model):
         """Строковое представление объекта студента."""
         return self.full_name
 
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="student",
+        null=True,
+        blank=True,
+    )
+
 
 class Department(models.Model):
     """Модель, представляющая кафедру."""
@@ -105,14 +113,6 @@ class Subject(models.Model):
     def __str__(self):
         """Строковое представление объекта предмета."""
         return self.name
-
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="student",
-        null=True,
-        blank=True,
-    )
 
 
 class AcademicDifference(models.Model):

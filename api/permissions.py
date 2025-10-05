@@ -8,23 +8,23 @@ from rest_framework import permissions
 logger = logging.getLogger(__name__)
 
 
-class IsBotOnly(permissions.BasePermission):
-    """Разрешает запись только телеграм-боту или его группе."""
+class IsBotOrAdminOnly(permissions.BasePermission):
+    """Чтение для всех, запись только админам и телеграм-боту."""
 
     def has_permission(self, request, view):
-        user = request.user
-
-        if not user or not user.is_authenticated:
-            return False
-
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        bot_username = getattr(settings, "TG_BOT_USERNAME", "tgbot")
+        user = request.user
+        if not user or not user.is_authenticated:
+            return False
 
-        if user.username == bot_username:
+        if user.is_staff or user.is_superuser:
             return True
 
+        bot_username = getattr(settings, "TG_BOT_USERNAME", "tgbot")
+        if user.username == bot_username:
+            return True
         if user.groups.filter(name="system_tgbot").exists():
             return True
 
