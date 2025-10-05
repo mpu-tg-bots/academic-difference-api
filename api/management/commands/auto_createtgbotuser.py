@@ -1,5 +1,5 @@
-"""Это команда, которая позволяет создавать пользователя для телеграмм бота автоматически
-при деплое проекта"""
+"""Это команда, которая позволяет создавать пользователя
+для телеграмм бота автоматически при деплое проекта"""
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -11,7 +11,7 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = "Create system user for Telegram bot"
+    """Create system user for Telegram bot"""
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -87,6 +87,6 @@ class Command(BaseCommand):
                 group.user_set.add(user)
                 self.stdout.write(
                     self.style.SUCCESS(
-                        f"Assigned {perms.count()} permissions to group 'system_tg_bot' and added user"
+                        f"Assigned {perms.count()} permissions to group"
                     )
                 )

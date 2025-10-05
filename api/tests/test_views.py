@@ -137,3 +137,69 @@ class AcademicDifferenceAPITests(APITestCase):
 
         self.difference.refresh_from_db()
         self.assertTrue(self.difference.is_closed)
+
+
+class TelegramStudentAPITests(APITestCase):
+    """Тесты для ручки регистрации студента через телеграм-бота."""
+
+    def setUp(self):
+        self.bot_user, _ = User.objects.get_or_create(
+            username=settings.TG_BOT_USERNAME,
+            defaults={
+                "email": settings.TG_BOT_EMAIL,
+                "password": settings.TG_BOT_PASSWORD,
+            },
+        )
+        self.client.force_authenticate(user=self.bot_user)
+
+        self.url = reverse("telegram-register")
+
+    def test_create_student_success(self):
+        """POST с валидными данными -> 201 Created"""
+        payload = {
+            "username": "ivan_bot",
+            "email": "ivan@example.com",
+            "password": "strongpassword123",
+            "full_name": "Иван Иванов",
+            "telegram_id": 123456789,
+        }
+        response = self.client.post(self.url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["full_name"], payload["full_name"])
+        self.assertEqual(response.data["telegram_id"], payload["telegram_id"])
+        self.assertTrue(
+            Student.objects.filter(telegram_id=payload["telegram_id"]).exists()
+        )
+
+    def test_create_student_invalid_data(self):
+        """POST с некорректными данными -> 400 Bad Request"""
+        payload = {
+            "username": "",
+            "email": "not-an-email",
+            "password": "",
+            "full_name": "",
+            "telegram_id": "abc",
+        }
+        response = self.client.post(self.url, payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("username", response.data)
+        self.assertIn("email", response.data)
+        self.assertIn("password", response.data)
+        self.assertIn("full_name", response.data)
+        self.assertIn("telegram_id", response.data)
+
+    def test_create_student_duplicate_telegram_id(self):
+        """POST с уже существующим telegram_id -> 400 Bad Request"""
+
+        payload = {
+            "username": "another_user",
+            "email": "another@example.com",
+            "password": "strongpassword123",
+            "full_name": "Пётр Петров",
+            "telegram_id": 123456789,
+        }
+        response = self.client.post(self.url, payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("telegram_id", response.data)
