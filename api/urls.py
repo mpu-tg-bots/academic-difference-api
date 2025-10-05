@@ -3,13 +3,12 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views import TelegramStudentCreateView
-
 from .views import (
     AcademicDifferenceViewSet,
     DepartmentViewSet,
     StudentViewSet,
     SubjectViewSet,
+    TelegramStudentCreateView,
 )
 
 router = DefaultRouter()
