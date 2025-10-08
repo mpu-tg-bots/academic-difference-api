@@ -5,9 +5,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ./.env
+      - .env
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -15,8 +15,8 @@ services:
 
   academic-api:
     build:
-      context: .
-      dockerfile: ./infra/Dockerfile
+      context: ./api/
+      dockerfile: ./Dockerfile
     container_name: academic-api-app-dev
     command: |
       sh -c "python manage.py migrate --noinput
@@ -25,13 +25,29 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - ./.env
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
     restart: unless-stopped
     volumes:
-      - .:/opt/app
+      - ./api/:/opt/app
+
+  telegram-bot:
+    build:
+      context: ./tgbot/
+      dockerfile: ./Dockerfile
+    container_name: telegram-bot-dev
+    command: |
+      sh -c "npm run dev"
+    env_file:
+      - .env
+    depends_on:
+      academic-api:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - ./tgbot/src/:/opt/app/src/
 
 volumes:
   staticfiles:
