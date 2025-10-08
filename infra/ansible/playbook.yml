@@ -36,7 +36,7 @@
         src: templates/.env.academic-api.prod.j2
         dest: /opt/app/.env.academic-api.prod
 
-    - name: Copy production environment file from template for academic api
+    - name: Copy production environment file from template for telegram bot
       template:
         src: templates/.env.telegram-bot.prod.j2
         dest: /opt/app/.env.telegram-bot.prod
@@ -56,7 +56,7 @@
 
     - name: Transfer Docker api image archive
       copy:
-        src: "{{playbook_dir}}/../../build/telegram-bot.tar.gz"
+        src: "{{playbook_dir}}/../../build/academic-api.tar.gz"
         dest: "/opt/app/academic-api.tar.gz"
 
     - name: Transfer Docker tgbot image archive
