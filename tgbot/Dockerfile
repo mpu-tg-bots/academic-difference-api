@@ -7,3 +7,4 @@ COPY package*.json .
 RUN npm ci
 
 COPY ./src ./src
+COPY ./tsconfig.json ./tsconfig.json

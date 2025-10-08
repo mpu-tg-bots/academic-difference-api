@@ -33,11 +33,11 @@ jobs:
 
       - name: Build Docker image and export as .tar.gz
         run: |
-          docker buildx build --platform linux/amd64 --load -f ./api/Dockerfile -t academic-api:$IMAGE_TAG .
+          docker buildx build --platform linux/amd64 --load -f ./api/Dockerfile -t academic-api:$IMAGE_TAG ./api
           mkdir -p build
           docker save academic-api:$IMAGE_TAG | gzip > build/academic-api.tar.gz
 
-          docker buildx build --platform linux/amd64 --load -f ./tgbot/Dockerfile -t telegram-bot:$IMAGE_TAG .
+          docker buildx build --platform linux/amd64 --load -f ./tgbot/Dockerfile -t telegram-bot:$IMAGE_TAG ./tgbot
           mkdir -p build
           docker save telegram-bot:$IMAGE_TAG | gzip > build/telegram-bot.tar.gz
 
