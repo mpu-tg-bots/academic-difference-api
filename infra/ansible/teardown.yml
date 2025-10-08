@@ -5,7 +5,7 @@
   tasks:
     - name: Stop and remove ALL Docker Compose services and volumes
       community.docker.docker_compose_v2:
-        project_src: /opt/academic-api
+        project_src: /opt/app
         state: absent
         remove_volumes: yes
         remove_orphans: yes
@@ -13,12 +13,12 @@
 
     - name: Remove the entire project directory
       file:
-        path: /opt/academic-api
+        path: /opt/app
         state: absent
 
     - name: Find all 'academic-api' Docker images
       command: "docker images -q 'academic-api:*'"
-      register: images_to_remove
+      register: images_to_remove_api
       changed_when: false
       ignore_errors: yes
 
@@ -27,8 +27,23 @@
         name: "{{ item }}"
         state: absent
         force_absent: yes
-      loop: "{{ images_to_remove.stdout_lines }}"
-      when: images_to_remove.stdout_lines | length > 0
+      loop: "{{ images_to_remove_api.stdout_lines }}"
+      when: images_to_remove_api.stdout_lines | length > 0
+      ignore_errors: yes
+
+    - name: Find all 'telegram-bot' Docker images
+      command: "docker images -q 'telegram-bot:*'"
+      register: images_to_remove_tgbot
+      changed_when: false
+      ignore_errors: yes
+
+    - name: Remove related 'telegram-bot' Docker images
+      community.docker.docker_image:
+        name: "{{ item }}"
+        state: absent
+        force_absent: yes
+      loop: "{{ images_to_remove_tgbot.stdout_lines }}"
+      when: images_to_remove_tgbot.stdout_lines | length > 0
       ignore_errors: yes
 
     - name: Prune any remaining dangling images

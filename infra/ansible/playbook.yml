@@ -15,31 +15,36 @@
 
     - name: Create project directory on server
       file:
-        path: /opt/academic-api
+        path: /opt/app
         state: directory
         owner: developer
         group: developer
-        mode: '0755'
+        mode: "0755"
 
     - name: Copy Docker Compose file
       copy:
         src: "{{playbook_dir}}/compose.yml"
-        dest: /opt/academic-api/compose.yml
+        dest: /opt/app/compose.yml
 
     - name: Copy production environment file from template for postgres
       template:
         src: templates/.env.pg.prod.j2
-        dest: /opt/academic-api/.env.pg.prod
+        dest: /opt/app/.env.pg.prod
 
     - name: Copy production environment file from template for academic api
       template:
         src: templates/.env.academic-api.prod.j2
-        dest: /opt/academic-api/.env.academic-api.prod
+        dest: /opt/app/.env.academic-api.prod
+
+    - name: Copy production environment file from template for academic api
+      template:
+        src: templates/.env.telegram-bot.prod.j2
+        dest: /opt/app/.env.telegram-bot.prod
 
     - name: Copy Caddyfile from template
       template:
         src: templates/Caddyfile.j2
-        dest: /opt/academic-api/Caddyfile
+        dest: /opt/app/Caddyfile
 
     - name: Pull required Docker images
       community.docker.docker_image:
@@ -49,18 +54,27 @@
         - "postgres:18-alpine"
         - "caddy:2-alpine"
 
-    - name: Transfer Docker image archive
+    - name: Transfer Docker api image archive
       copy:
-        src: "{{playbook_dir}}/../../build/academic-api.tar.gz"
-        dest: "/opt/academic-api/academic-api.tar.gz"
+        src: "{{playbook_dir}}/../../build/telegram-bot.tar.gz"
+        dest: "/opt/app/academic-api.tar.gz"
 
-    - name: Load Docker image from archive
-      shell: "docker load -i /opt/academic-api/academic-api.tar.gz"
+    - name: Transfer Docker tgbot image archive
+      copy:
+        src: "{{playbook_dir}}/../../build/telegram-bot.tar.gz"
+        dest: "/opt/app/telegram-bot.tar.gz"
+
+    - name: Load Docker api image from archive
+      shell: "docker load -i /opt/app/academic-api.tar.gz"
+      changed_when: false
+
+    - name: Load Docker tgbot image from archive
+      shell: "docker load -i /opt/app/telegram-bot.tar.gz"
       changed_when: false
 
     - name: Deploy services with Docker Compose
       community.docker.docker_compose_v2:
-        project_src: /opt/academic-api
+        project_src: /opt/app
         state: present
         pull: never
         remove_orphans: yes
@@ -72,7 +86,6 @@
         DJANGO_SUPERUSER_USERNAME: "{{ DJANGO_SUPERUSER_USERNAME }}"
         DJANGO_SUPERUSER_EMAIL: "{{ DJANGO_SUPERUSER_EMAIL }}"
         DJANGO_SUPERUSER_PASSWORD: "{{ DJANGO_SUPERUSER_PASSWORD }}"
-
 
     - name: Clean up dangling Docker images
       community.docker.docker_prune:
