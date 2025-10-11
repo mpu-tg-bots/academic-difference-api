@@ -19,36 +19,19 @@ class Command(BaseCommand):
         parser.add_argument(
             "--username", type=str, help="Username for the superuser"
         )
-        parser.add_argument("--email", type=str, help="Email for the superuser")
         parser.add_argument(
             "--password", type=str, help="Password for the superuser"
         )
 
     def handle(self, *args, **options):
-        """Создаём суперпользователя"""
+        username = options.get("username")
+        password = options.get("password")
 
-        username = options["username"]
-        email = options["email"]
-        password = options["password"]
+        if not User.objects.filter(username=username).exists():
+            self.stdout.write(f"Creating account for {username}")
 
-        if not all([username, email, password]):
-            self.stdout.write(
-                self.style.ERROR(
-                    "Username, email, and password must be provided."
-                )
-            )
-            return
+            User.objects.create_superuser(username=username, password=password)
 
-        if User.objects.filter(username=username).exists():
-            self.stdout.write(
-                self.style.WARNING(f'Superuser "{username}" already exists.')
-            )
+            self.stdout.write("Superuser created successfully!")
         else:
-            User.objects.create_superuser(
-                username=username, email=email, password=password
-            )
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f'Superuser "{username}" created successfully.'
-                )
-            )
+            self.stdout.write("Superuser already exists. Skipping.")

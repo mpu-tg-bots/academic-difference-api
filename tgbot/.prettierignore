@@ -1,0 +1,7 @@
+build/
+coverage/
+public/
+!public/.keep
+dist/
+*.json
+**/generated/*
