@@ -20,7 +20,8 @@ services:
     container_name: academic-api-app-dev
     command: |
       sh -c "python manage.py migrate --noinput
-             python manage.py auto_createsuperuser --username=${DJANGO_SUPERUSER_USERNAME} --email=${DJANGO_SUPERUSER_EMAIL} --password=${DJANGO_SUPERUSER_PASSWORD}
+             python manage.py auto_createsuperuser --username=${DJANGO_SUPERUSER_USERNAME} --password=${DJANGO_SUPERUSER_PASSWORD}
+             python manage.py auto_createtgbotuser --username=${DJANGO_TELEGRAM_BOT_USERNAME} --password=${DJANGO_TELEGRAM_BOT_PASSWORD} --token=${DJANGO_TELEGRAM_BOT_API_TOKEN}
              python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
@@ -53,7 +54,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./tgbot/src/:/opt/app/src/
-      - session_data:/opt/app/storage.sqlite
+      - ./tgbot/nodemon.json:/opt/app/nodemon.json
 
 volumes:
   staticfiles:

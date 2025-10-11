@@ -1,6 +1,8 @@
 import {Composer, Scenes, type Telegram} from 'telegraf';
 import {message} from 'telegraf/filters';
 
+import {studentsRegisterCreate} from '../generated/django-client';
+import {type Client} from '../generated/django-client/client';
 import {type TGContext} from '../types/context';
 
 export const STUDENT_REGISTER_SCENE = 'student_register';
@@ -10,14 +12,13 @@ type WizardState = {
     lastName: string | undefined;
     middleName: string | undefined;
     group: string | undefined;
-    fileId: string | undefined;
 };
 
 const getWizardState = (ctx: TGContext) => {
     return ctx.wizard.state as WizardState;
 };
 
-export const StudentRegisterSceneImpl = (tgapi: Telegram) => {
+export const StudentRegisterSceneImpl = (client: Client, tgapi: Telegram) => {
     const fileHandler = new Composer<TGContext>();
 
     const allowedMimeTypes = new Set([
@@ -27,6 +28,34 @@ export const StudentRegisterSceneImpl = (tgapi: Telegram) => {
         'image/jpeg',
     ]);
 
+    const handleRegister = async (ctx: TGContext, fileId: string) => {
+        const fileUrl = await tgapi.getFileLink(fileId);
+
+        const {error} = await studentsRegisterCreate({
+            client,
+            body: {
+                first_name: getWizardState(ctx).firstName!,
+                last_name: getWizardState(ctx).lastName!,
+                middle_name: getWizardState(ctx).middleName!,
+                group_number: getWizardState(ctx).group!,
+                file_id: fileId,
+                file_url: fileUrl.toString(),
+                telegram_id: ctx.from!.id,
+            },
+        });
+
+        if (error) {
+            console.error(error);
+            await ctx.reply(`Возникла непредвиденная ошибка, попробуйте ещё раз`);
+            await ctx.scene.reenter();
+            return;
+        }
+
+        await ctx.scene.leave();
+
+        await ctx.reply(`Введите /start ещё раз`);
+    };
+
     fileHandler.on(message('photo'), async (ctx) => {
         if (!ctx.message.photo.length) {
             await ctx.reply('Вы не загрузили фото, попробуйте ещё раз!');
@@ -35,19 +64,7 @@ export const StudentRegisterSceneImpl = (tgapi: Telegram) => {
 
         const {file_id: fileId} = ctx.message.photo.pop()!;
 
-        getWizardState(ctx).fileId = fileId;
-
-        ctx.session.user = {
-            firstName: getWizardState(ctx).firstName!,
-            lastName: getWizardState(ctx).lastName!,
-            middleName: getWizardState(ctx).middleName!,
-            group: getWizardState(ctx).group!,
-            fileId: getWizardState(ctx).fileId!,
-        };
-
-        await ctx.scene.leave();
-
-        await ctx.reply(`Введите /start ещё раз`);
+        await handleRegister(ctx, fileId);
     });
 
     fileHandler.on(message('document'), async (ctx) => {
@@ -63,19 +80,7 @@ export const StudentRegisterSceneImpl = (tgapi: Telegram) => {
             return;
         }
 
-        getWizardState(ctx).fileId = fileId;
-
-        ctx.session.user = {
-            firstName: getWizardState(ctx).firstName!,
-            lastName: getWizardState(ctx).lastName!,
-            middleName: getWizardState(ctx).middleName!,
-            group: getWizardState(ctx).group!,
-            fileId: getWizardState(ctx).fileId!,
-        };
-
-        await ctx.scene.leave();
-
-        await ctx.reply(`Введите /start ещё раз`);
+        await handleRegister(ctx, fileId);
     });
 
     return new Scenes.WizardScene<TGContext>(

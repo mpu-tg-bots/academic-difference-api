@@ -1,88 +1,149 @@
-"""Сериализаторы для моделей приложения API."""
+"""Сериализаторы для REST API"""
 
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import AcademicDifference, Department, Student, Subject
+from api.models import (
+    AcademicDifference,
+    AcademicDifferenceFile,
+    AcademicGroup,
+    Department,
+    Student,
+    Subject,
+    Teacher,
+)
+
+User = get_user_model()
 
 
-class StudentSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Student."""
+class UserSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для User.
+    Умеет создавать пользователя с хэшированием пароля.
+    """
 
     class Meta:
-        """Мета-опции для StudentSerializer."""
-
-        model = Student
+        model = User
         fields = [
             "id",
-            "full_name",
-            "email",
-            "phone",
-            "telegram_id",
-            "created_at",
-            "updated_at",
+            "username",
+            "first_name",
+            "last_name",
+            "middle_name",
+            "is_staff",
+            "password",
         ]
-        read_only_fields = ["created_at", "updated_at"]
+        extra_kwargs = {
+            "password": {"write_only": True},
+        }
+
+    def create(self, validated_data):
+        user = User.objects.create_user(**validated_data)
+        return user
+
+
+class AcademicGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AcademicGroup
+        fields = "__all__"
 
 
 class DepartmentSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Department."""
-
     class Meta:
-        """Мета-опции для DepartmentSerializer."""
-
         model = Department
-        fields = ["id", "name", "created_at", "updated_at"]
-        read_only_fields = ["created_at", "updated_at"]
+        fields = "__all__"
 
 
 class SubjectSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Subject."""
+    class Meta:
+        model = Subject
+        fields = "__all__"
 
-    department = DepartmentSerializer(read_only=True)
-    department_id = serializers.PrimaryKeyRelatedField(
-        queryset=Department.objects.all(), source="department", write_only=True
+
+class StudentSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для Student.
+    При `GET` запросе показывает полную информацию о `user` и `group`.
+    При `POST`/`PUT` запросе принимает `user_id` и `group_id`.
+    """
+
+    user = UserSerializer(read_only=True)
+    group = AcademicGroupSerializer(read_only=True)
+
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), source="user", write_only=True
+    )
+    group_id = serializers.PrimaryKeyRelatedField(
+        queryset=AcademicGroup.objects.all(), source="group", write_only=True
     )
 
     class Meta:
-        """Мета-опции для SubjectSerializer."""
-
-        model = Subject
+        model = Student
         fields = [
             "id",
-            "name",
-            "department",
-            "department_id",
-            "created_at",
-            "updated_at",
+            "user",
+            "group",
+            "user_id",
+            "group_id",
+            "telegram_id",
+            "settings",
         ]
-        read_only_fields = ["created_at", "updated_at"]
+
+    def validate_settings(self, value):
+        if not isinstance(value, dict):
+            raise serializers.ValidationError(
+                "Settings must be a valid JSON object (dict)."
+            )
+
+        if "notifications" not in value:
+            raise serializers.ValidationError(
+                "'notifications' field is required in settings."
+            )
+
+        if not isinstance(value.get("notifications"), bool):
+            raise serializers.ValidationError(
+                "'notifications' must be a boolean (true/false)."
+            )
+
+        return value
 
 
-class AcademicDifferenceReadSerializer(serializers.ModelSerializer):
-    """Сериализатор для чтения AcademicDifference с вложенными данными."""
+class TeacherSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для Teacher.
+    При `GET` показывает полную информацию о `user` и `subjects`.
+    При `POST`/`PUT` принимает `user_id` и список `subject_ids`.
+    """
+
+    user = UserSerializer(read_only=True)
+
+    subjects = SubjectSerializer(many=True, read_only=True)
+
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), source="user", write_only=True
+    )
+
+    subject_ids = serializers.PrimaryKeyRelatedField(
+        queryset=Subject.objects.all(),
+        source="subjects",
+        many=True,
+        write_only=True,
+    )
+
+    class Meta:
+        model = Teacher
+        fields = ["id", "user", "subjects", "user_id", "subject_ids"]
+
+
+class AcademicDifferenceSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для AcademicDifference.
+    При `GET` показывает детали студента и предмета.
+    При `POST`/`PUT` принимает `student_id` и `subject_id`.
+    """
 
     student = StudentSerializer(read_only=True)
     subject = SubjectSerializer(read_only=True)
-    department = serializers.CharField(source="department.name", read_only=True)
-
-    class Meta:
-        """Мета-опции для AcademicDifferenceReadSerializer."""
-
-        model = AcademicDifference
-        fields = [
-            "id",
-            "student",
-            "subject",
-            "department",
-            "deadline",
-            "is_closed",
-            "created_at",
-            "updated_at",
-        ]
-
-
-class AcademicDifferenceWriteSerializer(serializers.ModelSerializer):
-    """Сериализатор для создания/обновления AcademicDifference."""
 
     student_id = serializers.PrimaryKeyRelatedField(
         queryset=Student.objects.all(), source="student", write_only=True
@@ -92,7 +153,69 @@ class AcademicDifferenceWriteSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        """Мета-опции для AcademicDifferenceWriteSerializer."""
-
         model = AcademicDifference
-        fields = ["id", "student_id", "subject_id", "deadline", "is_closed"]
+        fields = [
+            "id",
+            "student",
+            "subject",
+            "student_id",
+            "subject_id",
+            "deadline",
+            "is_closed",
+        ]
+
+
+class AcademicDifferenceFileSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для модели AcademicDifferenceFile.
+    Позволяет создавать, обновлять и отображать записи.
+    """
+
+    student_id = serializers.PrimaryKeyRelatedField(
+        queryset=Student.objects.all(), source="student", write_only=True
+    )
+
+    student = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = AcademicDifferenceFile
+        fields = [
+            "id",
+            "student",
+            "student_id",
+            "file_id",
+            "file_url",
+            "state",
+            "created_at",
+        ]
+
+        read_only_fields = ("student", "created_at")
+
+
+class RegisterStudentSerializer(serializers.Serializer):
+    """
+    Сериализатор для приема данных при полной регистрации нового студента
+    с файлом расхождений.
+    """
+
+    first_name = serializers.CharField(max_length=150)
+    last_name = serializers.CharField(max_length=150)
+    middle_name = serializers.CharField(
+        max_length=150, required=False, allow_blank=True, default=""
+    )
+
+    telegram_id = serializers.IntegerField()
+    group_number = serializers.CharField(max_length=255)
+
+    file_id = serializers.CharField(max_length=255)
+    file_url = serializers.URLField(max_length=1024)
+
+    def validate_telegram_id(self, value):
+        """
+        Проверяем, что студент с таким telegram_id еще не зарегистрирован.
+        """
+        if Student.objects.filter(telegram_id=value).exists():
+            raise serializers.ValidationError(
+                f"Студент с Telegram ID {value} уже существует."
+            )
+        return value

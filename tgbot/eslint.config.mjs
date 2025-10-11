@@ -3,11 +3,19 @@ import importOrderConfig from '@gravity-ui/eslint-config/import-order';
 import prettierConfig from '@gravity-ui/eslint-config/prettier';
 import serverConfig from '@gravity-ui/eslint-config/server';
 import typescriptConfig from '@gravity-ui/eslint-config/typescript';
+import {defineConfig, globalIgnores} from 'eslint/config';
 
-/**
- * @type {import('eslint').ESLint.ConfigData[]}
- */
-export default [
+export default defineConfig([
+    globalIgnores([
+        'npm-debug.log',
+        'node_modules/',
+        'build/',
+        'dist/',
+        '*.json',
+        'src/generated/',
+        '*.config.js',
+        '*.config.mjs',
+    ]),
     ...baseConfig,
     ...serverConfig,
     ...importOrderConfig,
@@ -24,6 +32,7 @@ export default [
                     peerDependencies: false,
                 },
             ],
+            'new-cap': 'off',
         },
     },
     {
@@ -36,4 +45,4 @@ export default [
             ],
         },
     },
-];
+]);
