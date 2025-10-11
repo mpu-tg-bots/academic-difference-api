@@ -53,7 +53,9 @@ services:
     restart: unless-stopped
     volumes:
       - ./tgbot/src/:/opt/app/src/
+      - session_data:/opt/app/storage.sqlite
 
 volumes:
   staticfiles:
   postgres_data:
+  session_data:

@@ -1,17 +1,29 @@
-import {Telegraf} from 'telegraf';
+import {SQLite} from '@telegraf/session/sqlite';
+import {Scenes, Telegraf, session} from 'telegraf';
 
+import {StudentComposerImpl} from './composers/student';
 import {getConfig} from './config';
+import {StudentRegisterSceneImpl} from './scenes/student_register';
+import {type TGContext} from './types/context';
 
 const main = async () => {
     const config = getConfig();
 
-    const telegraf = new Telegraf(config.TELEGRAM_BOT_TOKEN);
+    const bot = new Telegraf<TGContext>(config.TELEGRAM_BOT_TOKEN);
 
-    telegraf.command('start', async (ctx) => {
-        ctx.reply(`Hello, ${ctx.from.id} @${ctx.from.username}`);
+    const store = SQLite<Scenes.WizardSession>({
+        filename: 'storage.sqlite',
     });
 
-    telegraf.launch();
+    const studentRegister = StudentRegisterSceneImpl(bot.telegram);
+
+    const stage = new Scenes.Stage<TGContext>([studentRegister]);
+
+    bot.use(session({store}));
+    bot.use(stage.middleware());
+    bot.use(StudentComposerImpl());
+
+    bot.launch();
 };
 
 main().catch(console.error);
