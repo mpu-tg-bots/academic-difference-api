@@ -18,13 +18,9 @@ FROM python:3.12-alpine
 
 RUN apk update && apk add --no-cache postgresql-libs && rm -rf /var/cache/apk/*
 
-RUN addgroup -S app && adduser -S -G app app
 WORKDIR /opt/app
 
 COPY --from=builder /install /usr/local
 COPY --from=builder /opt/app .
-
-RUN chown -R app:app /opt/app
-USER app
 
 EXPOSE 8000

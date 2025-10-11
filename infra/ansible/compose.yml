@@ -47,8 +47,6 @@ services:
       academic-api:
         condition: service_healthy
     restart: unless-stopped
-    volumes:
-      - session_data:/opt/app/storage.sqlite
 
   caddy:
     image: caddy:2-alpine
@@ -69,6 +67,5 @@ services:
 volumes:
   staticfiles:
   postgres_data:
-  session_data:
   caddy_data:
   caddy_config:
