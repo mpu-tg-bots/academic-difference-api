@@ -13,13 +13,8 @@ class CustomUserManager(BaseUserManager):
     """
 
     def _create_user(self, username, password, **extra_fields):
-        """
-        Создает и сохраняет пользователя с данным username и паролем.
-        Это основная функция, которую нужно переопределить.
-        """
         if not username:
-            raise ValueError("The given username must be set")
-
+            raise ValueError("Необходимо указать username")
         user = self.model(username=username, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -31,168 +26,123 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(username, password, **extra_fields)
 
     def create_superuser(self, username, password=None, **extra_fields):
-        """
-        Создает и сохраняет суперпользователя.
-        """
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-
         if extra_fields.get("is_staff") is not True:
-            raise ValueError("Superuser must have is_staff=True.")
+            raise ValueError("Суперпользователь должен иметь is_staff=True.")
         if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Superuser must have is_superuser=True.")
-
+            raise ValueError("Суперпользователь должен иметь is_superuser=True.")
         return self._create_user(username, password, **extra_fields)
 
 
 class User(AbstractUser):
-    email = None
-    middle_name = models.CharField("middle name", blank=True)
+    middle_name = models.CharField("Отчество", max_length=150, blank=True)
+    email = None  # отключаем поле email
 
     USERNAME_FIELD = "username"
-
+    REQUIRED_FIELDS = []
     objects = CustomUserManager()
 
     def __str__(self):
         return self.username
 
+    class Meta:
+        verbose_name = "пользователь"
+        verbose_name_plural = "пользователи"
+
 
 class Common(models.Model):
-    """Common model for common fields"""
-
+    """Базовая модель с общими полями"""
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     history = HistoricalRecords(inherit=True)
 
     class Meta:
-        """Common model Meta class."""
-
         abstract = True
 
 
 class AcademicGroup(Common):
-    """University Academic Group model"""
-
-    number = models.CharField(
-        max_length=255, unique=True, verbose_name="Academic Group Number"
-    )
+    """Группа университета"""
+    number = models.CharField(max_length=255, unique=True, verbose_name="Номер группы")
 
     class Meta:
-        """Academic Group Meta class."""
-
-        verbose_name = "academic group"
-        verbose_name_plural = "academic groups"
+        verbose_name = "группа"
+        verbose_name_plural = "группы"
 
     def __str__(self):
-        return f"{self.number}"
+        return self.number
 
 
 class Student(Common):
-    """University Student model"""
-
-    user = models.OneToOneField(
-        User, on_delete=models.PROTECT, verbose_name="Related user"
-    )
-
-    group = models.ForeignKey(
-        AcademicGroup, on_delete=models.PROTECT, verbose_name="Related group"
-    )
-
-    telegram_id = models.BigIntegerField(
-        unique=True, verbose_name="Telegram ID"
-    )
-
-    settings = JSONField(default=dict, blank=True, verbose_name="User Settings")
+    """Студент"""
+    user = models.OneToOneField(User, on_delete=models.PROTECT, verbose_name="Пользователь")
+    group = models.ForeignKey(AcademicGroup, on_delete=models.PROTECT, verbose_name="Группа")
+    telegram_id = models.BigIntegerField(unique=True, verbose_name="Telegram ID")
+    settings = JSONField(default=dict, blank=True, verbose_name="Настройки пользователя")
 
     class Meta:
-        """Student Meta class."""
-
-        verbose_name = "student"
-        verbose_name_plural = "students"
+        verbose_name = "студент"
+        verbose_name_plural = "студенты"
 
     def __str__(self):
-        return (
-            f"{self.user.last_name} {self.user.first_name} {self.group.number}"
-        )
+        return f"{self.user.last_name} {self.user.first_name} ({self.group.number})"
 
 
 class Department(Common):
-    """University Department model"""
-
-    name = models.CharField(
-        max_length=255, unique=True, verbose_name="Department Name"
-    )
+    """Факультет"""
+    name = models.CharField(max_length=255, unique=True, verbose_name="Название факультета")
 
     class Meta:
-        """Department Meta class."""
-
-        verbose_name = "department"
-        verbose_name_plural = "departments"
+        verbose_name = "факультет"
+        verbose_name_plural = "факультеты"
 
     def __str__(self):
         return self.name
 
 
 class Subject(Common):
-    """University Subject model"""
-
-    name = models.CharField(
-        max_length=255, unique=True, verbose_name="Subject Name"
-    )
-
-    department = models.ForeignKey(Department, on_delete=models.PROTECT)
+    """Предмет"""
+    name = models.CharField(max_length=255, unique=True, verbose_name="Название предмета")
+    department = models.ForeignKey(Department, on_delete=models.PROTECT, verbose_name="Факультет")
 
     class Meta:
-        """Department Meta class."""
-
-        verbose_name = "subject"
-        verbose_name_plural = "subjects"
+        verbose_name = "предмет"
+        verbose_name_plural = "предметы"
 
     def __str__(self):
         return self.name
 
 
 class Teacher(Common):
-    """University Teacher model"""
-
-    user = models.OneToOneField(User, on_delete=models.PROTECT)
-
-    subjects = models.ManyToManyField(
-        Subject, verbose_name="Teacher To Subject"
-    )
+    """Преподаватель"""
+    user = models.OneToOneField(User, on_delete=models.PROTECT, verbose_name="Пользователь")
+    subjects = models.ManyToManyField(Subject, verbose_name="Преподаваемые предметы")
 
     class Meta:
-        """Teacher Meta class."""
-
-        verbose_name = "teacher"
-        verbose_name_plural = "teachers"
+        verbose_name = "преподаватель"
+        verbose_name_plural = "преподаватели"
 
     def __str__(self):
         return f"{self.user.last_name} {self.user.first_name}"
 
 
 class AcademicDifference(Common):
-    """Academic Difference model"""
-
-    student = models.ForeignKey(Student, on_delete=models.PROTECT)
-
-    subject = models.ForeignKey(Subject, on_delete=models.PROTECT)
-
-    deadline = models.DateField()
-
-    is_closed = models.BooleanField(default=False)
+    """Учебное расхождение"""
+    student = models.ForeignKey(Student, on_delete=models.PROTECT, verbose_name="Студент")
+    subject = models.ForeignKey(Subject, on_delete=models.PROTECT, verbose_name="Предмет")
+    deadline = models.DateField(verbose_name="Срок")
+    is_closed = models.BooleanField(default=False, verbose_name="Закрыто")
 
     class Meta:
-        """Academic Difference Meta class."""
+        verbose_name = "расхождение в учебе"
+        verbose_name_plural = "расхождения в учебе"
 
-        verbose_name = "academic difference"
-        verbose_name_plural = "academic differences"
+    def __str__(self):
+        return f"{self.student} - {self.subject}"
 
 
 class AcademicDifferenceFile(Common):
-    """
-    Хранит информацию о файле с расхождениями, присланном и обработанном ботом.
-    """
+    """Файл с расхождениями"""
 
     class FileState(models.TextChoices):
         PENDING = "PENDING", "Ожидает обработки"
@@ -200,24 +150,12 @@ class AcademicDifferenceFile(Common):
         ERROR = "ERROR", "Ошибка обработки"
 
     student = models.ForeignKey(
-        Student,
-        on_delete=models.CASCADE,
-        related_name="difference_files",
-        verbose_name="Студент",
+        Student, on_delete=models.CASCADE, related_name="difference_files", verbose_name="Студент"
     )
-
-    file_id = models.CharField(
-        max_length=255, unique=True, verbose_name="Telegram File ID"
-    )
-
+    file_id = models.CharField(max_length=255, unique=True, verbose_name="ID файла Telegram")
     file_url = models.URLField(max_length=1024, verbose_name="Ссылка на файл")
-
     state = models.CharField(
-        max_length=20,
-        choices=FileState.choices,
-        default=FileState.PENDING,
-        db_index=True,
-        verbose_name="Статус",
+        max_length=20, choices=FileState.choices, default=FileState.PENDING, db_index=True, verbose_name="Статус"
     )
 
     class Meta:
@@ -226,6 +164,5 @@ class AcademicDifferenceFile(Common):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return (
-            f"Файл от {self.student.user.username} ({self.get_state_display()})"
-        )
+        return f"Файл от {self.student.user.username} ({self.get_state_display()})"
+
