@@ -134,6 +134,8 @@ class AcademicGroupAdmin(AdminMixin):
 
 # ===================== Student =====================
 class StudentResource(resources.ModelResource):
+    """Ресурс для импорта/экспорта студентов."""
+
     user = fields.Field(
         column_name="user",
         attribute="user",
@@ -234,6 +236,8 @@ class TeacherAdmin(AdminMixin):
 # ===================== AcademicDifferenceFile =====================
 @admin.register(AcademicDifferenceFile)
 class AcademicDifferenceFileAdmin(admin.ModelAdmin):
+    """Админ-панель для файлов с расхождениями."""
+
     list_display = (
         "student_name",
         "state_colored",

@@ -38,6 +38,8 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    """Модель пользователя без email."""
+
     middle_name = models.CharField("Отчество", max_length=150, blank=True)
     email = None  # отключаем поле email
 
