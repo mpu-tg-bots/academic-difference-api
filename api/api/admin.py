@@ -228,45 +228,6 @@ class TeacherAdmin(AdminMixin):
         )
 
 
-# ===================== AcademicDifference =====================
-@admin.register(AcademicDifferenceFile)
-class AcademicDifferenceFileAdmin(admin.ModelAdmin):
-    """Админ-панель для файлов с расхождениями."""
-
-    list_display = (
-        "student_name",
-        "subject_name",
-        "department_name",
-        "deadline",
-        "is_closed",
-    )
-    list_display_links = ("student_name",)
-    list_filter = ("is_closed", "deadline", "subject__department__name")
-    search_fields = (
-        "student__user__first_name",
-        "student__user__last_name",
-        "student__user__username",
-        "student__group__number",
-        "subject__name",
-    )
-    autocomplete_fields = ("student", "subject")  # <--- здесь dropdown
-    list_editable = ("is_closed",)
-    readonly_fields = ("created_at", "updated_at")
-    date_hierarchy = "deadline"
-
-    @admin.display(description="Студент")
-    def student_name(self, obj):
-        return f"{obj.student.user.last_name} {obj.student.user.first_name} {obj.student.user.middle_name}"
-
-    @admin.display(description="Предмет")
-    def subject_name(self, obj):
-        return obj.subject.name
-
-    @admin.display(description="Факультет")
-    def department_name(self, obj):
-        return obj.subject.department.name
-
-
 # ===================== AcademicDifferenceFile =====================
 @admin.register(AcademicDifferenceFile)
 class AcademicDifferenceFileAdmin(admin.ModelAdmin):
