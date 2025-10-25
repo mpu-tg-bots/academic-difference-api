@@ -13,6 +13,7 @@ class CustomUserManager(BaseUserManager):
     """
 
     def _create_user(self, username, password, **extra_fields):
+        """Создание и сохранение пользователя с заданным username и паролем."""
         if not username:
             raise ValueError("Необходимо указать username")
         user = self.model(username=username, **extra_fields)
@@ -21,11 +22,13 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_user(self, username, password=None, **extra_fields):
+        """Создание обычного пользователя."""
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
         return self._create_user(username, password, **extra_fields)
 
     def create_superuser(self, username, password=None, **extra_fields):
+        """Создание суперпользователя."""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         if extra_fields.get("is_staff") is not True:
@@ -38,6 +41,8 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    """Модель пользователя без email."""
+
     middle_name = models.CharField("Отчество", max_length=150, blank=True)
     email = None  # отключаем поле email
 
@@ -54,7 +59,7 @@ class User(AbstractUser):
 
 
 class Common(models.Model):
-    """Базовая модель с общими полями"""
+    """Базовая модель с общими полями."""
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -65,7 +70,7 @@ class Common(models.Model):
 
 
 class AcademicGroup(Common):
-    """Группа университета"""
+    """Группа университета."""
 
     number = models.CharField(
         max_length=255, unique=True, verbose_name="Номер группы"
@@ -80,7 +85,7 @@ class AcademicGroup(Common):
 
 
 class Student(Common):
-    """Студент"""
+    """Студент."""
 
     user = models.OneToOneField(
         User, on_delete=models.PROTECT, verbose_name="Пользователь"
@@ -100,11 +105,14 @@ class Student(Common):
         verbose_name_plural = "студенты"
 
     def __str__(self):
-        return f"{self.user.last_name} {self.user.first_name} ({self.group.number})"
+        return (
+            f"{self.user.last_name} {self.user.first_name} "
+            f"({self.group.number})"
+        )
 
 
 class Department(Common):
-    """Факультет"""
+    """Факультет."""
 
     name = models.CharField(
         max_length=255, unique=True, verbose_name="Название факультета"
@@ -119,7 +127,7 @@ class Department(Common):
 
 
 class Subject(Common):
-    """Предмет"""
+    """Предмет."""
 
     name = models.CharField(
         max_length=255, unique=True, verbose_name="Название предмета"
@@ -137,7 +145,7 @@ class Subject(Common):
 
 
 class Teacher(Common):
-    """Преподаватель"""
+    """Преподаватель."""
 
     user = models.OneToOneField(
         User, on_delete=models.PROTECT, verbose_name="Пользователь"
@@ -155,7 +163,7 @@ class Teacher(Common):
 
 
 class AcademicDifference(Common):
-    """Учебное расхождение"""
+    """Учебное расхождение."""
 
     student = models.ForeignKey(
         Student, on_delete=models.PROTECT, verbose_name="Студент"
@@ -175,9 +183,11 @@ class AcademicDifference(Common):
 
 
 class AcademicDifferenceFile(Common):
-    """Файл с расхождениями"""
+    """Файл с расхождениями."""
 
     class FileState(models.TextChoices):
+        """Статусы обработки файла."""
+
         PENDING = "PENDING", "Ожидает обработки"
         PROCESSED = "PROCESSED", "Обработан"
         ERROR = "ERROR", "Ошибка обработки"
@@ -207,5 +217,6 @@ class AcademicDifferenceFile(Common):
 
     def __str__(self):
         return (
-            f"Файл от {self.student.user.username} ({self.get_state_display()})"
+            f"Файл от {self.student.user.username} "
+            f"({self.get_state_display()})"
         )
