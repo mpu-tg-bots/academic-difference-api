@@ -123,6 +123,7 @@ class UserAdmin(BaseUserAdmin):
 @admin.register(AcademicGroup)
 class AcademicGroupAdmin(AdminMixin):
     """Админ-панель для учебных групп."""
+
     inlines = (StudentInline,)
     list_display = ("number",)
     list_display_links = ("number",)
@@ -214,6 +215,7 @@ class SubjectAdmin(AdminMixin):
 @admin.register(Teacher)
 class TeacherAdmin(AdminMixin):
     """Админ-панель для преподавателей."""
+
     list_display = ("full_name",)
     list_display_links = ("full_name",)
     filter_horizontal = ("subjects",)
