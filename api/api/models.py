@@ -54,7 +54,7 @@ class User(AbstractUser):
 
 
 class Common(models.Model):
-    """Базовая модель с общими полями"""
+    """Базовая модель с общими полями (created_at, updated_at, history)."""
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

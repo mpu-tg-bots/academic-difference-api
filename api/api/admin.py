@@ -1,9 +1,9 @@
 """Настройки админки на русском"""
 
-from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
+from django import forms
 
 from import_export import fields, resources
 from import_export.admin import ExportActionMixin, ImportExportModelAdmin
@@ -25,6 +25,8 @@ from .models import (
 
 # ===================== Формы =====================
 class UserChangeForm(forms.ModelForm):
+    """Форма для изменения пользователя с полем ФИО."""
+
     full_name = forms.CharField(label="ФИО", required=True)
 
     class Meta:
@@ -61,6 +63,8 @@ class UserChangeForm(forms.ModelForm):
 
 # ===================== Inlines =====================
 class StudentInline(admin.TabularInline):
+    """Inline для отображения студентов в группе."""
+
     model = Student
     fields = ("full_name", "telegram_id")
     readonly_fields = ("full_name",)
@@ -74,6 +78,8 @@ class StudentInline(admin.TabularInline):
 
 # ===================== Миксин =====================
 class AdminMixin(SimpleHistoryAdmin, ImportExportModelAdmin, ExportActionMixin):
+    """Миксин для админ-классов с историей и импортом/экспортом."""
+
     def get_export_formats(self):
         formats = (base_formats.CSV, base_formats.XLS, base_formats.XLSX)
         return [f for f in formats if f().can_export()]
@@ -85,6 +91,8 @@ class AdminMixin(SimpleHistoryAdmin, ImportExportModelAdmin, ExportActionMixin):
 # ===================== Пользователь =====================
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    """Админ-панель для пользователей."""
+
     form = UserChangeForm
     search_fields = ("username", "first_name", "last_name", "middle_name")
     fieldsets = (
@@ -143,6 +151,8 @@ class StudentResource(resources.ModelResource):
 
 @admin.register(Student)
 class StudentAdmin(AdminMixin):
+    """Админ-панель для студентов."""
+
     resource_class = StudentResource
     # Убираем raw_id_fields, чтобы появился dropdown
     # raw_id_fields = ("group", "user")
@@ -219,8 +229,10 @@ class TeacherAdmin(AdminMixin):
 
 
 # ===================== AcademicDifference =====================
-@admin.register(AcademicDifference)
-class AcademicDifferenceAdmin(AdminMixin):
+@admin.register(AcademicDifferenceFile)
+class AcademicDifferenceFileAdmin(admin.ModelAdmin):
+    """Админ-панель для файлов с расхождениями."""
+
     list_display = (
         "student_name",
         "subject_name",
