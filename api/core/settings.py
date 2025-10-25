@@ -3,10 +3,11 @@
 from pathlib import Path
 
 from decouple import config
+
 # settings.py
 
-LANGUAGE_CODE = 'ru-ru'  # Русский язык
-TIME_ZONE = 'Europe/Moscow'  # Твой часовой пояс
+LANGUAGE_CODE = "ru-ru"  # Русский язык
+TIME_ZONE = "Europe/Moscow"  # Твой часовой пояс
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
