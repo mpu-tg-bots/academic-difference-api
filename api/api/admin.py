@@ -25,6 +25,8 @@ from .models import (
 
 # ===================== Формы =====================
 class UserChangeForm(forms.ModelForm):
+    """Форма изменения пользователя с полным ФИО."""
+
     full_name = forms.CharField(label="ФИО", required=True)
 
     class Meta:
@@ -40,13 +42,16 @@ class UserChangeForm(forms.ModelForm):
         )
 
     def __init__(self, *args, **kwargs):
+        """Инициализация формы с текущим ФИО пользователя."""
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             self.fields["full_name"].initial = (
-                f"{self.instance.last_name} {self.instance.first_name} {self.instance.middle_name}"
+                f"{self.instance.last_name} {self.instance.first_name} "
+                f"{self.instance.middle_name}"
             )
 
     def save(self, commit=True):
+        """Сохранение формы с разбивкой ФИО на части."""
         user = super().save(commit=False)
         full_name = self.cleaned_data.get("full_name", "")
         parts = full_name.strip().split(maxsplit=2)
@@ -61,20 +66,27 @@ class UserChangeForm(forms.ModelForm):
 
 # ===================== Inlines =====================
 class StudentInline(admin.TabularInline):
+    """Inline для отображения студентов в группе."""
+
     model = Student
     fields = ("full_name", "telegram_id")
     readonly_fields = ("full_name",)
 
     @admin.display(description="ФИО студента")
     def full_name(self, obj):
+        """Отображение полного ФИО студента."""
         return (
-            f"{obj.user.last_name} {obj.user.first_name} {obj.user.middle_name}"
+            f"{obj.user.last_name} {obj.user.first_name} "
+            f"{obj.user.middle_name}"
         )
 
 
 # ===================== Миксин =====================
 class AdminMixin(SimpleHistoryAdmin, ImportExportModelAdmin, ExportActionMixin):
+    """Миксин для админ-панели с историей и импортом/экспортом."""
+
     def get_export_formats(self):
+        """Получение доступных форматов экспорта."""
         formats = (base_formats.CSV, base_formats.XLS, base_formats.XLSX)
         return [f for f in formats if f().can_export()]
 
@@ -85,6 +97,8 @@ class AdminMixin(SimpleHistoryAdmin, ImportExportModelAdmin, ExportActionMixin):
 # ===================== Пользователь =====================
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    """Админ-панель для пользователей."""
+
     form = UserChangeForm
     search_fields = ("username", "first_name", "last_name", "middle_name")
     fieldsets = (
@@ -109,12 +123,15 @@ class UserAdmin(BaseUserAdmin):
 
     @admin.display(description="ФИО")
     def full_name_display(self, obj):
+        """Отображение полного ФИО пользователя."""
         return f"{obj.last_name} {obj.first_name} {obj.middle_name}"
 
 
 # ===================== AcademicGroup =====================
 @admin.register(AcademicGroup)
 class AcademicGroupAdmin(AdminMixin):
+    """Админ-панель для академических групп."""
+
     inlines = (StudentInline,)
     list_display = ("number",)
     list_display_links = ("number",)
@@ -125,6 +142,8 @@ class AcademicGroupAdmin(AdminMixin):
 
 # ===================== Student =====================
 class StudentResource(resources.ModelResource):
+    """Ресурс для импорта/экспорта студентов."""
+
     user = fields.Field(
         column_name="user",
         attribute="user",
@@ -143,10 +162,9 @@ class StudentResource(resources.ModelResource):
 
 @admin.register(Student)
 class StudentAdmin(AdminMixin):
-    resource_class = StudentResource
-    # Убираем raw_id_fields, чтобы появился dropdown
-    # raw_id_fields = ("group", "user")
+    """Админ-панель для студентов."""
 
+    resource_class = StudentResource
     list_display = ("full_name", "group_number", "telegram_id")
     list_display_links = ("full_name",)
     search_fields = (
@@ -159,24 +177,27 @@ class StudentAdmin(AdminMixin):
     list_filter = ("group__number",)
     readonly_fields = ("created_at", "updated_at")
     date_hierarchy = "created_at"
-
-    # Делает поле user dropdown с поиском по ФИО
     autocomplete_fields = ("user", "group")
 
     @admin.display(description="ФИО студента")
     def full_name(self, obj):
+        """Отображение полного ФИО студента."""
         return (
-            f"{obj.user.last_name} {obj.user.first_name} {obj.user.middle_name}"
+            f"{obj.user.last_name} {obj.user.first_name} "
+            f"{obj.user.middle_name}"
         )
 
     @admin.display(description="Номер группы")
     def group_number(self, obj):
+        """Отображение номера группы студента."""
         return obj.group.number
 
 
 # ===================== Department =====================
 @admin.register(Department)
 class DepartmentAdmin(AdminMixin):
+    """Админ-панель для факультетов."""
+
     list_display = ("name",)
     list_display_links = ("name",)
     search_fields = ("name",)
@@ -187,6 +208,8 @@ class DepartmentAdmin(AdminMixin):
 # ===================== Subject =====================
 @admin.register(Subject)
 class SubjectAdmin(AdminMixin):
+    """Админ-панель для предметов."""
+
     list_display = ("name", "department_name")
     list_display_links = ("name",)
     autocomplete_fields = ("department",)
@@ -197,12 +220,15 @@ class SubjectAdmin(AdminMixin):
 
     @admin.display(description="Факультет")
     def department_name(self, obj):
+        """Отображение названия факультета."""
         return obj.department.name
 
 
 # ===================== Teacher =====================
 @admin.register(Teacher)
 class TeacherAdmin(AdminMixin):
+    """Админ-панель для преподавателей."""
+
     list_display = ("full_name",)
     list_display_links = ("full_name",)
     filter_horizontal = ("subjects",)
@@ -213,14 +239,18 @@ class TeacherAdmin(AdminMixin):
 
     @admin.display(description="ФИО преподавателя")
     def full_name(self, obj):
+        """Отображение полного ФИО преподавателя."""
         return (
-            f"{obj.user.last_name} {obj.user.first_name} {obj.user.middle_name}"
+            f"{obj.user.last_name} {obj.user.first_name} "
+            f"{obj.user.middle_name}"
         )
 
 
 # ===================== AcademicDifference =====================
 @admin.register(AcademicDifference)
 class AcademicDifferenceAdmin(AdminMixin):
+    """Админ-панель для академических разниц."""
+
     list_display = (
         "student_name",
         "subject_name",
@@ -237,27 +267,35 @@ class AcademicDifferenceAdmin(AdminMixin):
         "student__group__number",
         "subject__name",
     )
-    autocomplete_fields = ("student", "subject")  # <--- здесь dropdown
+    autocomplete_fields = ("student", "subject")
     list_editable = ("is_closed",)
     readonly_fields = ("created_at", "updated_at")
     date_hierarchy = "deadline"
 
     @admin.display(description="Студент")
     def student_name(self, obj):
-        return f"{obj.student.user.last_name} {obj.student.user.first_name} {obj.student.user.middle_name}"
+        """Отображение ФИО студента."""
+        return (
+            f"{obj.student.user.last_name} {obj.student.user.first_name} "
+            f"{obj.student.user.middle_name}"
+        )
 
     @admin.display(description="Предмет")
     def subject_name(self, obj):
+        """Отображение названия предмета."""
         return obj.subject.name
 
     @admin.display(description="Факультет")
     def department_name(self, obj):
+        """Отображение названия факультета."""
         return obj.subject.department.name
 
 
 # ===================== AcademicDifferenceFile =====================
 @admin.register(AcademicDifferenceFile)
 class AcademicDifferenceFileAdmin(admin.ModelAdmin):
+    """Админ-панель для файлов академических разниц."""
+
     list_display = (
         "student_name",
         "state_colored",
@@ -279,14 +317,19 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
         ("Даты", {"fields": ("created_at", "updated_at")}),
     )
 
-    autocomplete_fields = ("student",)  # <--- dropdown для выбора студента
+    autocomplete_fields = ("student",)
 
     @admin.display(description="ФИО студента")
     def student_name(self, obj):
-        return f"{obj.student.user.last_name} {obj.student.user.first_name} {obj.student.user.middle_name}"
+        """Отображение ФИО студента."""
+        return (
+            f"{obj.student.user.last_name} {obj.student.user.first_name} "
+            f"{obj.student.user.middle_name}"
+        )
 
     @admin.display(description="Статус", ordering="state")
     def state_colored(self, obj):
+        """Отображение цветного статуса обработки."""
         color = "orange"
         if obj.state == obj.FileState.PROCESSED:
             color = "green"
@@ -300,6 +343,7 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
 
     @admin.display(description="Ссылка на файл")
     def download_link(self, obj):
+        """Отображение ссылки для скачивания файла."""
         return format_html(
             '<a href="{}" target="_blank">Скачать</a>', obj.file_url
         )
