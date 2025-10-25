@@ -29,12 +29,22 @@ class UserChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ("username", "full_name", "is_active", "is_staff", "is_superuser", "groups", "user_permissions")
+        fields = (
+            "username",
+            "full_name",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+            "groups",
+            "user_permissions",
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
-            self.fields["full_name"].initial = f"{self.instance.last_name} {self.instance.first_name} {self.instance.middle_name}"
+            self.fields["full_name"].initial = (
+                f"{self.instance.last_name} {self.instance.first_name} {self.instance.middle_name}"
+            )
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -78,7 +88,18 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         ("Учётные данные", {"fields": ("username", "password")}),
         ("Личная информация", {"fields": ("full_name",)}),
-        ("Разрешения", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        (
+            "Разрешения",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
         ("Важные даты", {"fields": ("last_login", "date_joined")}),
     )
     list_display = ("username", "full_name_display", "is_staff")
@@ -102,8 +123,14 @@ class AcademicGroupAdmin(AdminMixin):
 
 # ===================== Student =====================
 class StudentResource(resources.ModelResource):
-    user = fields.Field(column_name="user", attribute="user", widget=ForeignKeyWidget(User, "username"))
-    group = fields.Field(column_name="group", attribute="group", widget=ForeignKeyWidget(AcademicGroup, "number"))
+    user = fields.Field(
+        column_name="user", attribute="user", widget=ForeignKeyWidget(User, "username")
+    )
+    group = fields.Field(
+        column_name="group",
+        attribute="group",
+        widget=ForeignKeyWidget(AcademicGroup, "number"),
+    )
 
     class Meta:
         model = Student
@@ -115,14 +142,20 @@ class StudentAdmin(AdminMixin):
     resource_class = StudentResource
     # Убираем raw_id_fields, чтобы появился dropdown
     # raw_id_fields = ("group", "user")
-    
+
     list_display = ("full_name", "group_number", "telegram_id")
     list_display_links = ("full_name",)
-    search_fields = ("user__first_name", "user__last_name", "user__username", "group__number", "telegram_id")
+    search_fields = (
+        "user__first_name",
+        "user__last_name",
+        "user__username",
+        "group__number",
+        "telegram_id",
+    )
     list_filter = ("group__number",)
     readonly_fields = ("created_at", "updated_at")
     date_hierarchy = "created_at"
-    
+
     # Делает поле user dropdown с поиском по ФИО
     autocomplete_fields = ("user", "group")
 
@@ -133,7 +166,6 @@ class StudentAdmin(AdminMixin):
     @admin.display(description="Номер группы")
     def group_number(self, obj):
         return obj.group.number
-
 
 
 # ===================== Department =====================
@@ -181,10 +213,22 @@ class TeacherAdmin(AdminMixin):
 # ===================== AcademicDifference =====================
 @admin.register(AcademicDifference)
 class AcademicDifferenceAdmin(AdminMixin):
-    list_display = ("student_name", "subject_name", "department_name", "deadline", "is_closed")
+    list_display = (
+        "student_name",
+        "subject_name",
+        "department_name",
+        "deadline",
+        "is_closed",
+    )
     list_display_links = ("student_name",)
     list_filter = ("is_closed", "deadline", "subject__department__name")
-    search_fields = ("student__user__first_name", "student__user__last_name", "student__user__username", "student__group__number", "subject__name")
+    search_fields = (
+        "student__user__first_name",
+        "student__user__last_name",
+        "student__user__username",
+        "student__group__number",
+        "subject__name",
+    )
     autocomplete_fields = ("student", "subject")  # <--- здесь dropdown
     list_editable = ("is_closed",)
     readonly_fields = ("created_at", "updated_at")
@@ -231,9 +275,12 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
             color = "green"
         elif obj.state == obj.FileState.ERROR:
             color = "red"
-        return format_html('<span style="color: {}; font-weight: bold;">{}</span>', color, obj.get_state_display())
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color,
+            obj.get_state_display(),
+        )
 
     @admin.display(description="Ссылка на файл")
     def download_link(self, obj):
         return format_html('<a href="{}" target="_blank">Скачать</a>', obj.file_url)
-

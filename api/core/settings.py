@@ -3,10 +3,11 @@
 from pathlib import Path
 
 from decouple import config
+
 # settings.py
 
-LANGUAGE_CODE = 'ru-ru'  # Русский язык
-TIME_ZONE = 'Europe/Moscow'  # Твой часовой пояс
+LANGUAGE_CODE = "ru-ru"  # Русский язык
+TIME_ZONE = "Europe/Moscow"  # Твой часовой пояс
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -97,16 +98,13 @@ AUTH_PASSWORD_VALIDATORS = [
         "UserAttributeSimilarityValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation."
-        "MinimumLengthValidator",
+        "NAME": "django.contrib.auth.password_validation." "MinimumLengthValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation."
-        "CommonPasswordValidator",
+        "NAME": "django.contrib.auth.password_validation." "CommonPasswordValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation."
-        "NumericPasswordValidator",
+        "NAME": "django.contrib.auth.password_validation." "NumericPasswordValidator",
     },
 ]
 
@@ -124,9 +122,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ],
-    "DEFAULT_PAGINATION_CLASS": (
-        "rest_framework.pagination.PageNumberPagination"
-    ),
+    "DEFAULT_PAGINATION_CLASS": ("rest_framework.pagination.PageNumberPagination"),
     "PAGE_SIZE": 32,
 }
 
