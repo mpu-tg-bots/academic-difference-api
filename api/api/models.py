@@ -31,7 +31,9 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Суперпользователь должен иметь is_staff=True.")
         if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Суперпользователь должен иметь is_superuser=True.")
+            raise ValueError(
+                "Суперпользователь должен иметь is_superuser=True."
+            )
         return self._create_user(username, password, **extra_fields)
 
 
@@ -53,6 +55,7 @@ class User(AbstractUser):
 
 class Common(models.Model):
     """Базовая модель с общими полями"""
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     history = HistoricalRecords(inherit=True)
@@ -63,7 +66,10 @@ class Common(models.Model):
 
 class AcademicGroup(Common):
     """Группа университета"""
-    number = models.CharField(max_length=255, unique=True, verbose_name="Номер группы")
+
+    number = models.CharField(
+        max_length=255, unique=True, verbose_name="Номер группы"
+    )
 
     class Meta:
         verbose_name = "группа"
@@ -75,10 +81,19 @@ class AcademicGroup(Common):
 
 class Student(Common):
     """Студент"""
-    user = models.OneToOneField(User, on_delete=models.PROTECT, verbose_name="Пользователь")
-    group = models.ForeignKey(AcademicGroup, on_delete=models.PROTECT, verbose_name="Группа")
-    telegram_id = models.BigIntegerField(unique=True, verbose_name="Telegram ID")
-    settings = JSONField(default=dict, blank=True, verbose_name="Настройки пользователя")
+
+    user = models.OneToOneField(
+        User, on_delete=models.PROTECT, verbose_name="Пользователь"
+    )
+    group = models.ForeignKey(
+        AcademicGroup, on_delete=models.PROTECT, verbose_name="Группа"
+    )
+    telegram_id = models.BigIntegerField(
+        unique=True, verbose_name="Telegram ID"
+    )
+    settings = JSONField(
+        default=dict, blank=True, verbose_name="Настройки пользователя"
+    )
 
     class Meta:
         verbose_name = "студент"
@@ -90,7 +105,10 @@ class Student(Common):
 
 class Department(Common):
     """Факультет"""
-    name = models.CharField(max_length=255, unique=True, verbose_name="Название факультета")
+
+    name = models.CharField(
+        max_length=255, unique=True, verbose_name="Название факультета"
+    )
 
     class Meta:
         verbose_name = "факультет"
@@ -102,8 +120,13 @@ class Department(Common):
 
 class Subject(Common):
     """Предмет"""
-    name = models.CharField(max_length=255, unique=True, verbose_name="Название предмета")
-    department = models.ForeignKey(Department, on_delete=models.PROTECT, verbose_name="Факультет")
+
+    name = models.CharField(
+        max_length=255, unique=True, verbose_name="Название предмета"
+    )
+    department = models.ForeignKey(
+        Department, on_delete=models.PROTECT, verbose_name="Факультет"
+    )
 
     class Meta:
         verbose_name = "предмет"
@@ -115,8 +138,13 @@ class Subject(Common):
 
 class Teacher(Common):
     """Преподаватель"""
-    user = models.OneToOneField(User, on_delete=models.PROTECT, verbose_name="Пользователь")
-    subjects = models.ManyToManyField(Subject, verbose_name="Преподаваемые предметы")
+
+    user = models.OneToOneField(
+        User, on_delete=models.PROTECT, verbose_name="Пользователь"
+    )
+    subjects = models.ManyToManyField(
+        Subject, verbose_name="Преподаваемые предметы"
+    )
 
     class Meta:
         verbose_name = "преподаватель"
@@ -128,8 +156,13 @@ class Teacher(Common):
 
 class AcademicDifference(Common):
     """Учебное расхождение"""
-    student = models.ForeignKey(Student, on_delete=models.PROTECT, verbose_name="Студент")
-    subject = models.ForeignKey(Subject, on_delete=models.PROTECT, verbose_name="Предмет")
+
+    student = models.ForeignKey(
+        Student, on_delete=models.PROTECT, verbose_name="Студент"
+    )
+    subject = models.ForeignKey(
+        Subject, on_delete=models.PROTECT, verbose_name="Предмет"
+    )
     deadline = models.DateField(verbose_name="Срок")
     is_closed = models.BooleanField(default=False, verbose_name="Закрыто")
 
@@ -150,12 +183,21 @@ class AcademicDifferenceFile(Common):
         ERROR = "ERROR", "Ошибка обработки"
 
     student = models.ForeignKey(
-        Student, on_delete=models.CASCADE, related_name="difference_files", verbose_name="Студент"
+        Student,
+        on_delete=models.CASCADE,
+        related_name="difference_files",
+        verbose_name="Студент",
     )
-    file_id = models.CharField(max_length=255, unique=True, verbose_name="ID файла Telegram")
+    file_id = models.CharField(
+        max_length=255, unique=True, verbose_name="ID файла Telegram"
+    )
     file_url = models.URLField(max_length=1024, verbose_name="Ссылка на файл")
     state = models.CharField(
-        max_length=20, choices=FileState.choices, default=FileState.PENDING, db_index=True, verbose_name="Статус"
+        max_length=20,
+        choices=FileState.choices,
+        default=FileState.PENDING,
+        db_index=True,
+        verbose_name="Статус",
     )
 
     class Meta:
@@ -164,5 +206,6 @@ class AcademicDifferenceFile(Common):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"Файл от {self.student.user.username} ({self.get_state_display()})"
-
+        return (
+            f"Файл от {self.student.user.username} ({self.get_state_display()})"
+        )
