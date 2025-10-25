@@ -8,6 +8,10 @@
         file_server
     }
 
+    handle_path /files/* {
+        reverse_proxy telegram-bot:3000
+    }
+
     handle {
         reverse_proxy academic-api:8000
     }
