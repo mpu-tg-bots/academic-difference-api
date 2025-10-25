@@ -1,9 +1,9 @@
 """Настройки админки на русском"""
 
+from django import forms
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
-from django import forms
 
 from import_export import fields, resources
 from import_export.admin import ExportActionMixin, ImportExportModelAdmin
