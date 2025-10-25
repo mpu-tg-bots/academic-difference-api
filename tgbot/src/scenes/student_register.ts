@@ -1,4 +1,4 @@
-import {Composer, Scenes, type Telegram} from 'telegraf';
+import {Composer, Scenes} from 'telegraf';
 import {message} from 'telegraf/filters';
 
 import {studentsRegisterCreate} from '../generated/django-client';
@@ -18,7 +18,7 @@ const getWizardState = (ctx: TGContext) => {
     return ctx.wizard.state as WizardState;
 };
 
-export const StudentRegisterSceneImpl = (client: Client, tgapi: Telegram) => {
+export const StudentRegisterSceneImpl = (client: Client) => {
     const fileHandler = new Composer<TGContext>();
 
     const allowedMimeTypes = new Set([
@@ -29,8 +29,6 @@ export const StudentRegisterSceneImpl = (client: Client, tgapi: Telegram) => {
     ]);
 
     const handleRegister = async (ctx: TGContext, fileId: string) => {
-        const fileUrl = await tgapi.getFileLink(fileId);
-
         const {error} = await studentsRegisterCreate({
             client,
             body: {
@@ -39,7 +37,6 @@ export const StudentRegisterSceneImpl = (client: Client, tgapi: Telegram) => {
                 middle_name: getWizardState(ctx).middleName!,
                 group_number: getWizardState(ctx).group!,
                 file_id: fileId,
-                file_url: fileUrl.toString(),
                 telegram_id: ctx.from!.id,
             },
         });

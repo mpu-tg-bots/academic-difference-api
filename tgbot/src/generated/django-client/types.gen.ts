@@ -28,10 +28,7 @@ export type AcademicDifferenceFile = {
      * Telegram File ID
      */
     file_id: string;
-    /**
-     * Ссылка на файл
-     */
-    file_url: string;
+    readonly safe_download_url: string;
     /**
      * Статус
      */
@@ -132,10 +129,7 @@ export type PatchedAcademicDifferenceFile = {
      * Telegram File ID
      */
     file_id?: string;
-    /**
-     * Ссылка на файл
-     */
-    file_url?: string;
+    readonly safe_download_url?: string;
     /**
      * Статус
      */
@@ -212,7 +206,6 @@ export type RegisterStudent = {
     telegram_id: number;
     group_number: string;
     file_id: string;
-    file_url: string;
 };
 
 /**
@@ -261,7 +254,8 @@ export type Teacher = {
 };
 
 /**
- * Сериализатор для User. Умеет создавать пользователя с хэшированием пароля.
+ * Сериализатор для User.
+ * Умеет создавать пользователя с хэшированием пароля.
  */
 export type User = {
     readonly id: number;
@@ -301,10 +295,6 @@ export type AcademicDifferenceFileWritable = {
      * Telegram File ID
      */
     file_id: string;
-    /**
-     * Ссылка на файл
-     */
-    file_url: string;
     /**
      * Статус
      */
@@ -347,10 +337,6 @@ export type PatchedAcademicDifferenceFileWritable = {
      * Telegram File ID
      */
     file_id?: string;
-    /**
-     * Ссылка на файл
-     */
-    file_url?: string;
     /**
      * Статус
      */
@@ -438,7 +424,8 @@ export type TeacherWritable = {
 };
 
 /**
- * Сериализатор для User. Умеет создавать пользователя с хэшированием пароля.
+ * Сериализатор для User.
+ * Умеет создавать пользователя с хэшированием пароля.
  */
 export type UserWritable = {
     /**
