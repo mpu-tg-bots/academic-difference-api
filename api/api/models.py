@@ -102,7 +102,8 @@ class Student(Common):
         verbose_name_plural = "студенты"
 
     def __str__(self):
-        return f"{self.user.last_name} {self.user.first_name} ({self.group.number})"
+        name = f"{self.user.last_name} {self.user.first_name}"
+        return f"{name} ({self.group.number})"
 
 
 class Department(Common):
