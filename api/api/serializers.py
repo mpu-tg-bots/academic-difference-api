@@ -13,6 +13,8 @@ from api.models import (
     Teacher,
 )
 
+from django.conf import settings
+
 User = get_user_model()
 
 
@@ -177,6 +179,8 @@ class AcademicDifferenceFileSerializer(serializers.ModelSerializer):
 
     student = serializers.StringRelatedField(read_only=True)
 
+    safe_download_url = serializers.SerializerMethodField()
+
     class Meta:
         model = AcademicDifferenceFile
         fields = [
@@ -184,12 +188,16 @@ class AcademicDifferenceFileSerializer(serializers.ModelSerializer):
             "student",
             "student_id",
             "file_id",
-            "file_url",
+            "safe_download_url",
             "state",
             "created_at",
         ]
 
         read_only_fields = ("student", "created_at")
+
+    def get_safe_download_url(self, obj):
+
+        return f"{settings.BOT_API_BASE_URL}/files/{obj.file_id}/"
 
 
 class RegisterStudentSerializer(serializers.Serializer):
@@ -208,7 +216,6 @@ class RegisterStudentSerializer(serializers.Serializer):
     group_number = serializers.CharField(max_length=255)
 
     file_id = serializers.CharField(max_length=255)
-    file_url = serializers.URLField(max_length=1024)
 
     def validate_telegram_id(self, value):
         """

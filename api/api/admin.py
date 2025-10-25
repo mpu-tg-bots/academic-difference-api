@@ -20,6 +20,7 @@ from .models import (
     Teacher,
     User,
 )
+from django.conf import settings
 
 
 class StudentInline(admin.TabularInline):
@@ -275,6 +276,9 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
     @admin.display(description="Ссылка на файл")
     def download_link(self, obj: AcademicDifferenceFile):
         """Отображает кликабельную ссылку на файл."""
+
+        safe_url = f"{settings.BOT_API_BASE_URL}/files/{obj.file_id}/"
         return format_html(
-            '<a href="{}" target="_blank">Скачать</a>', obj.file_url
+            '<a href="{}" target="_blank">Скачать</a>',
+            safe_url,
         )
