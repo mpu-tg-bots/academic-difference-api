@@ -1,5 +1,6 @@
 """Сериализаторы для REST API"""
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -13,7 +14,6 @@ from api.models import (
     Teacher,
 )
 
-from django.conf import settings
 
 User = get_user_model()
 

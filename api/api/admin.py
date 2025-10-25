@@ -1,5 +1,6 @@
 """Admin panel settings"""
 
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
@@ -20,7 +21,6 @@ from .models import (
     Teacher,
     User,
 )
-from django.conf import settings
 
 
 class StudentInline(admin.TabularInline):
