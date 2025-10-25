@@ -31,7 +31,9 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Суперпользователь должен иметь is_staff=True.")
         if extra_fields.get("is_superuser") is not True:
-            raise ValueError("Суперпользователь должен иметь is_superuser=True.")
+            raise ValueError(
+                "Суперпользователь должен иметь is_superuser=True."
+            )
         return self._create_user(username, password, **extra_fields)
 
 
@@ -65,7 +67,9 @@ class Common(models.Model):
 class AcademicGroup(Common):
     """Группа университета"""
 
-    number = models.CharField(max_length=255, unique=True, verbose_name="Номер группы")
+    number = models.CharField(
+        max_length=255, unique=True, verbose_name="Номер группы"
+    )
 
     class Meta:
         verbose_name = "группа"
@@ -84,7 +88,9 @@ class Student(Common):
     group = models.ForeignKey(
         AcademicGroup, on_delete=models.PROTECT, verbose_name="Группа"
     )
-    telegram_id = models.BigIntegerField(unique=True, verbose_name="Telegram ID")
+    telegram_id = models.BigIntegerField(
+        unique=True, verbose_name="Telegram ID"
+    )
     settings = JSONField(
         default=dict, blank=True, verbose_name="Настройки пользователя"
     )
@@ -136,7 +142,9 @@ class Teacher(Common):
     user = models.OneToOneField(
         User, on_delete=models.PROTECT, verbose_name="Пользователь"
     )
-    subjects = models.ManyToManyField(Subject, verbose_name="Преподаваемые предметы")
+    subjects = models.ManyToManyField(
+        Subject, verbose_name="Преподаваемые предметы"
+    )
 
     class Meta:
         verbose_name = "преподаватель"
@@ -198,4 +206,6 @@ class AcademicDifferenceFile(Common):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"Файл от {self.student.user.username} ({self.get_state_display()})"
+        return (
+            f"Файл от {self.student.user.username} ({self.get_state_display()})"
+        )

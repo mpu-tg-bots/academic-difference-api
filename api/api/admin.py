@@ -67,7 +67,9 @@ class StudentInline(admin.TabularInline):
 
     @admin.display(description="ФИО студента")
     def full_name(self, obj):
-        return f"{obj.user.last_name} {obj.user.first_name} {obj.user.middle_name}"
+        return (
+            f"{obj.user.last_name} {obj.user.first_name} {obj.user.middle_name}"
+        )
 
 
 # ===================== Миксин =====================
@@ -124,7 +126,9 @@ class AcademicGroupAdmin(AdminMixin):
 # ===================== Student =====================
 class StudentResource(resources.ModelResource):
     user = fields.Field(
-        column_name="user", attribute="user", widget=ForeignKeyWidget(User, "username")
+        column_name="user",
+        attribute="user",
+        widget=ForeignKeyWidget(User, "username"),
     )
     group = fields.Field(
         column_name="group",
@@ -161,7 +165,9 @@ class StudentAdmin(AdminMixin):
 
     @admin.display(description="ФИО студента")
     def full_name(self, obj):
-        return f"{obj.user.last_name} {obj.user.first_name} {obj.user.middle_name}"
+        return (
+            f"{obj.user.last_name} {obj.user.first_name} {obj.user.middle_name}"
+        )
 
     @admin.display(description="Номер группы")
     def group_number(self, obj):
@@ -207,7 +213,9 @@ class TeacherAdmin(AdminMixin):
 
     @admin.display(description="ФИО преподавателя")
     def full_name(self, obj):
-        return f"{obj.user.last_name} {obj.user.first_name} {obj.user.middle_name}"
+        return (
+            f"{obj.user.last_name} {obj.user.first_name} {obj.user.middle_name}"
+        )
 
 
 # ===================== AcademicDifference =====================
@@ -250,10 +258,19 @@ class AcademicDifferenceAdmin(AdminMixin):
 # ===================== AcademicDifferenceFile =====================
 @admin.register(AcademicDifferenceFile)
 class AcademicDifferenceFileAdmin(admin.ModelAdmin):
-    list_display = ("student_name", "state_colored", "created_at", "download_link")
+    list_display = (
+        "student_name",
+        "state_colored",
+        "created_at",
+        "download_link",
+    )
     list_display_links = ("student_name",)
     list_filter = ("state", "created_at", "student__group__number")
-    search_fields = ("student__user__username", "student__user__last_name", "file_id")
+    search_fields = (
+        "student__user__username",
+        "student__user__last_name",
+        "file_id",
+    )
     readonly_fields = ("created_at", "updated_at")
 
     fieldsets = (
@@ -283,4 +300,6 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
 
     @admin.display(description="Ссылка на файл")
     def download_link(self, obj):
-        return format_html('<a href="{}" target="_blank">Скачать</a>', obj.file_url)
+        return format_html(
+            '<a href="{}" target="_blank">Скачать</a>', obj.file_url
+        )
