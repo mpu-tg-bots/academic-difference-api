@@ -43,9 +43,10 @@ class UserChangeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
-            self.fields["full_name"].initial = (
-                f"{self.instance.last_name} {self.instance.first_name} {self.instance.middle_name}"
-            )
+            last = self.instance.last_name
+            first = self.instance.first_name
+            middle = self.instance.middle_name
+            self.fields["full_name"].initial = f"{last} {first} {middle}"
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -116,7 +117,10 @@ class UserAdmin(BaseUserAdmin):
 
     @admin.display(description="ФИО")
     def full_name_display(self, obj):
-        return f"{obj.last_name} {obj.first_name} {obj.middle_name}"
+        last = obj.student.user.last_name
+        first = obj.student.user.first_name
+        middle = obj.student.user.middle_name
+        return f"{last} {first} {middle}"
 
 
 # ===================== AcademicGroup =====================
@@ -263,7 +267,10 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
 
     @admin.display(description="ФИО студента")
     def student_name(self, obj):
-        return f"{obj.student.user.last_name} {obj.student.user.first_name} {obj.student.user.middle_name}"
+        last = obj.student.user.last_name
+        first = obj.student.user.first_name
+        middle = obj.student.user.middle_name
+        return f"{last} {first} {middle}"
 
     @admin.display(description="Статус", ordering="state")
     def state_colored(self, obj):
