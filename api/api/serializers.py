@@ -15,6 +15,7 @@ from api.models import (
 )
 
 User = get_user_model()
+settings.configure()
 
 
 class UserSerializer(serializers.ModelSerializer):

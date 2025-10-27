@@ -22,6 +22,8 @@ from .models import (
     User,
 )
 
+settings.configure()
+
 
 class StudentInline(admin.TabularInline):
     """Inline admin field for student model"""
