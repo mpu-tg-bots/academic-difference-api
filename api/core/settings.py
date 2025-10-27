@@ -149,4 +149,4 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-BOT_API_BASE_URL = config("BOT_API_BASE_URL")
+BOT_API_BASE_URL = config("BOT_API_BASE_URL", default="")
