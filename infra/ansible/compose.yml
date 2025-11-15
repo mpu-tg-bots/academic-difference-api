@@ -43,6 +43,11 @@ services:
       sh -c "npm run build && node ./dist/main.js"
     env_file:
       - ./.env.telegram-bot.prod
+    healthcheck:
+      test: ["CMD-SHELL", "nc -zv 127.0.0.1 3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
       academic-api:
         condition: service_healthy
@@ -62,10 +67,25 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
+      - telegram-bot
       - academic-api
+      - uptime-kuma
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    container_name: uptime-kuma
+    volumes:
+      - uptime_kuma:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "nc -zv 127.0.0.1 3001"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
 
 volumes:
   staticfiles:
   postgres_data:
   caddy_data:
   caddy_config:
+  uptime_kuma:

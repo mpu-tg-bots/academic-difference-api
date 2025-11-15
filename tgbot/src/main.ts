@@ -37,6 +37,10 @@ const main = async () => {
 
     const server = express();
 
+    server.get('/health', (_req: Request, res: Response) => {
+        res.status(200).end();
+    });
+
     server.get(`/files/:id`, async (req: Request, res: Response) => {
         const {id} = req.params;
         try {

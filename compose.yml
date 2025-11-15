@@ -50,6 +50,11 @@ services:
       - "3000:3000"
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "nc -zv 127.0.0.1 3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
       academic-api:
         condition: service_healthy

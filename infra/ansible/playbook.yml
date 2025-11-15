@@ -89,7 +89,6 @@
         DJANGO_TELEGRAM_BOT_PASSWORD: "{{ DJANGO_TELEGRAM_BOT_PASSWORD }}"
         DJANGO_TELEGRAM_BOT_API_TOKEN: "{{ DJANGO_TELEGRAM_BOT_API_TOKEN }}"
 
-
     - name: Clean up dangling Docker images
       community.docker.docker_prune:
         images: true

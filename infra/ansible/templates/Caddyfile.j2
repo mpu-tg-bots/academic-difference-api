@@ -8,11 +8,15 @@
         file_server
     }
 
-    handle_path /files/* {
-        reverse_proxy telegram-bot:3000
-    }
-
     handle {
         reverse_proxy academic-api:8000
     }
+}
+
+{{ BOT_DOMAIN_NAME }}, www.{{ BOT_DOMAIN_NAME }} {
+		reverse_proxy telegram-bot:3000
+}
+
+{{ MONITORING_DOMAIN_NAME }}, www.{{ MONITORING_DOMAIN_NAME }} {
+		reverse_proxy uptime-kuma:3001
 }
