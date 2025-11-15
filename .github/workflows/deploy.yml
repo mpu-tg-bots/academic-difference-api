@@ -53,6 +53,8 @@ jobs:
           --extra-vars "
             image_tag='$(date +%Y%m%d)-$(git rev-parse --short HEAD)'
             DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}
+            MONITORING_DOMAIN_NAME=${{ secrets.MONITORING_DOMAIN_NAME }}
+            BOT_DOMAIN_NAME=${{ secrets.BOT_DOMAIN_NAME }}
             ALLOWED_HOSTS='${{ secrets.ALLOWED_HOSTS }}'
           " \
           --vault-password-file <(echo "$ANSIBLE_VAULT_PASSWORD")
