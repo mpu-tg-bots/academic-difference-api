@@ -53,6 +53,7 @@
       loop:
         - "postgres:18-alpine"
         - "caddy:2-alpine"
+        - "louislam/uptime-kuma:2"
 
     - name: Transfer Docker api image archive
       copy:
