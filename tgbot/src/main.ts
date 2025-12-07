@@ -4,11 +4,20 @@ import express from 'express';
 import type {Request, Response} from 'express';
 import {Scenes, Telegraf, session} from 'telegraf';
 
-import {StudentComposerImpl} from './composers/student';
+import {actions} from './actions';
+import {StudentComposerImpl} from './composers';
 import {getConfig} from './config';
+import {type TGContext} from './context';
 import {createClient, createConfig} from './generated/django-client/client';
-import {StudentRegisterSceneImpl} from './scenes/student_register';
-import {type TGContext} from './types/context';
+import {auth} from './middleware';
+import {
+    FileDeleteSceneImpl,
+    FileListSceneImpl,
+    FileUploadSceneImpl,
+    FileViewSceneImpl,
+    MenuSceneImpl,
+    StudentRegisterSceneImpl,
+} from './scenes';
 
 const main = async () => {
     const config = getConfig();
@@ -27,11 +36,23 @@ const main = async () => {
 
     const studentRegister = StudentRegisterSceneImpl(djangoClient);
 
-    const stage = new Scenes.Stage<TGContext>([studentRegister]);
+    const unauthorizedStage = new Scenes.Stage<TGContext>([studentRegister]);
 
     bot.use(session());
+    bot.use(unauthorizedStage.middleware());
+
+    const fileUplaod = FileUploadSceneImpl(djangoClient);
+    const fileList = FileListSceneImpl(djangoClient);
+    const fileView = FileViewSceneImpl(djangoClient);
+    const fileDelete = FileDeleteSceneImpl(djangoClient);
+    const menu = MenuSceneImpl();
+
+    const stage = new Scenes.Stage<TGContext>([fileUplaod, fileList, fileView, fileDelete, menu]);
+
+    bot.use(auth(djangoClient));
     bot.use(stage.middleware());
-    bot.use(StudentComposerImpl(djangoClient));
+    bot.use(StudentComposerImpl());
+    actions(bot);
 
     bot.launch();
 

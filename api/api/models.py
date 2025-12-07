@@ -47,21 +47,21 @@ class CustomUserManager(BaseUserManager):
 
 class User(AbstractUser):
     email = None
-    middle_name = models.CharField("middle name", blank=True)
+    middle_name = models.CharField("Отчество", blank=True)
 
     USERNAME_FIELD = "username"
 
     objects = CustomUserManager()
 
     def __str__(self):
-        return self.username
+        return f"{self.last_name} {self.first_name} {self.middle_name}"
 
 
 class Common(models.Model):
     """Common model for common fields"""
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создано")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлен")
     history = HistoricalRecords(inherit=True)
 
     class Meta:
@@ -74,14 +74,14 @@ class AcademicGroup(Common):
     """University Academic Group model"""
 
     number = models.CharField(
-        max_length=255, unique=True, verbose_name="Academic Group Number"
+        max_length=255, unique=True, verbose_name="Номер группы"
     )
 
     class Meta:
         """Academic Group Meta class."""
 
-        verbose_name = "academic group"
-        verbose_name_plural = "academic groups"
+        verbose_name = "Группа"
+        verbose_name_plural = "Группы"
 
     def __str__(self):
         return f"{self.number}"
@@ -91,24 +91,24 @@ class Student(Common):
     """University Student model"""
 
     user = models.OneToOneField(
-        User, on_delete=models.PROTECT, verbose_name="Related user"
+        User, on_delete=models.PROTECT, verbose_name="Связанный пользователь"
     )
 
     group = models.ForeignKey(
-        AcademicGroup, on_delete=models.PROTECT, verbose_name="Related group"
+        AcademicGroup, on_delete=models.PROTECT, verbose_name="Связанная группа"
     )
 
     telegram_id = models.BigIntegerField(
         unique=True, verbose_name="Telegram ID"
     )
 
-    settings = JSONField(default=dict, blank=True, verbose_name="User Settings")
+    settings = JSONField(default=dict, blank=True, verbose_name="Настройки")
 
     class Meta:
         """Student Meta class."""
 
-        verbose_name = "student"
-        verbose_name_plural = "students"
+        verbose_name = "Студент"
+        verbose_name_plural = "Студенты"
 
     def __str__(self):
         return (
@@ -120,14 +120,14 @@ class Department(Common):
     """University Department model"""
 
     name = models.CharField(
-        max_length=255, unique=True, verbose_name="Department Name"
+        max_length=255, unique=True, verbose_name="Название"
     )
 
     class Meta:
         """Department Meta class."""
 
-        verbose_name = "department"
-        verbose_name_plural = "departments"
+        verbose_name = "Кафедра"
+        verbose_name_plural = "Кафедры"
 
     def __str__(self):
         return self.name
@@ -137,16 +137,18 @@ class Subject(Common):
     """University Subject model"""
 
     name = models.CharField(
-        max_length=255, unique=True, verbose_name="Subject Name"
+        max_length=255, unique=True, verbose_name="Название"
     )
 
-    department = models.ForeignKey(Department, on_delete=models.PROTECT)
+    department = models.ForeignKey(
+        Department, on_delete=models.PROTECT, verbose_name="Кафедра"
+    )
 
     class Meta:
         """Department Meta class."""
 
-        verbose_name = "subject"
-        verbose_name_plural = "subjects"
+        verbose_name = "Предмет"
+        verbose_name_plural = "Предметы"
 
     def __str__(self):
         return self.name
@@ -155,17 +157,19 @@ class Subject(Common):
 class Teacher(Common):
     """University Teacher model"""
 
-    user = models.OneToOneField(User, on_delete=models.PROTECT)
+    user = models.OneToOneField(
+        User, on_delete=models.PROTECT, verbose_name="Пользователь"
+    )
 
     subjects = models.ManyToManyField(
-        Subject, verbose_name="Teacher To Subject"
+        Subject, verbose_name="Предмет преподавателя"
     )
 
     class Meta:
         """Teacher Meta class."""
 
-        verbose_name = "teacher"
-        verbose_name_plural = "teachers"
+        verbose_name = "Преподаватель"
+        verbose_name_plural = "Преподаватели"
 
     def __str__(self):
         return f"{self.user.last_name} {self.user.first_name}"
@@ -174,19 +178,23 @@ class Teacher(Common):
 class AcademicDifference(Common):
     """Academic Difference model"""
 
-    student = models.ForeignKey(Student, on_delete=models.PROTECT)
+    student = models.ForeignKey(
+        Student, on_delete=models.PROTECT, verbose_name="Студент"
+    )
 
-    subject = models.ForeignKey(Subject, on_delete=models.PROTECT)
+    subject = models.ForeignKey(
+        Subject, on_delete=models.PROTECT, verbose_name="Предмет"
+    )
 
-    deadline = models.DateField()
+    deadline = models.DateField(verbose_name="Дедлайн")
 
-    is_closed = models.BooleanField(default=False)
+    is_closed = models.BooleanField(default=False, verbose_name="Сдано")
 
     class Meta:
         """Academic Difference Meta class."""
 
-        verbose_name = "academic difference"
-        verbose_name_plural = "academic differences"
+        verbose_name = "РУП"
+        verbose_name_plural = "РУПы"
 
 
 class AcademicDifferenceFile(Common):
@@ -195,9 +203,12 @@ class AcademicDifferenceFile(Common):
     """
 
     class FileState(models.TextChoices):
-        PENDING = "PENDING", "Ожидает обработки"
-        PROCESSED = "PROCESSED", "Обработан"
-        ERROR = "ERROR", "Ошибка обработки"
+        APPROVED = "APPROVED", "Подтверждён"
+        NOT_ACCEPTED = (
+            "NOT_ACCEPTED",
+            "Не принят",
+        )
+        REVIEW = "REVIEW", "Рассмотрение"
 
     student = models.ForeignKey(
         Student,
@@ -215,14 +226,14 @@ class AcademicDifferenceFile(Common):
     state = models.CharField(
         max_length=20,
         choices=FileState.choices,
-        default=FileState.PENDING,
+        default=FileState.REVIEW,
         db_index=True,
         verbose_name="Статус",
     )
 
     class Meta:
-        verbose_name = "файл с расхождениями"
-        verbose_name_plural = "файлы с расхождениями"
+        verbose_name = "Файл с РУП"
+        verbose_name_plural = "Файлы с РУПами"
         ordering = ["-created_at"]
 
     def __str__(self):
