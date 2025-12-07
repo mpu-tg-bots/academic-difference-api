@@ -129,7 +129,7 @@ class AcademicDifferenceFilter(filters.FilterSet):
 class AcademicDifferenceFileFilter(filters.FilterSet):
     """
     Фильтр для модели AcademicDifferenceFile.
-    Позволяет фильтровать по telegram_id студента, статусу и дате создания.
+    Позволяет фильтровать по id студента, статусу и дате создания.
     """
 
     created_at = filters.DateFromToRangeFilter()
@@ -137,7 +137,7 @@ class AcademicDifferenceFileFilter(filters.FilterSet):
     class Meta:
         model = AcademicDifferenceFile
         fields = {
-            "student__telegram_id": ["exact"],
+            "student__id": ["exact"],
             "state": ["exact", "in"],
         }
 
@@ -207,12 +207,6 @@ class StudentViewSet(viewsets.ModelViewSet):
 
         student = Student.objects.create(
             user=user, group=group, telegram_id=validated_data["telegram_id"]
-        )
-
-        AcademicDifferenceFile.objects.create(
-            student=student,
-            file_id=validated_data["file_id"],
-            file_url=validated_data["file_url"],
         )
 
         output_serializer = StudentSerializer(student)

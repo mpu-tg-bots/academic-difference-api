@@ -7,13 +7,14 @@
     "lint:ts": "tsc --noEmit",
     "lint:eslint": "eslint",
     "lint:prettier": "prettier --check ./src",
-    "test": "jest --config jest.config.ts"
+    "test": "jest --config jest.config.ts",
+    "gen:client": "npx @hey-api/openapi-ts -i http://localhost:8000/api/v1/schema/ -o src/generated/django-client"
   },
   "devDependencies": {
     "@gravity-ui/eslint-config": "^4.2.0",
     "@gravity-ui/prettier-config": "^1.1.0",
     "@gravity-ui/tsconfig": "^1.0.0",
-    "@hey-api/openapi-ts": "^0.85.1",
+    "@hey-api/openapi-ts": "^0.85.2",
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.7.0",

@@ -59,11 +59,11 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {"fields": ("username", "password")}),
         (
-            "Personal info",
+            "ФИО",
             {"fields": ("first_name", "middle_name", "last_name")},
         ),
         (
-            "Permissions",
+            "Права",
             {
                 "fields": (
                     "is_active",
@@ -74,7 +74,7 @@ class UserAdmin(BaseUserAdmin):
                 ),
             },
         ),
-        ("Important dates", {"fields": ("last_login", "date_joined")}),
+        ("Важные даты", {"fields": ("last_login", "date_joined")}),
     )
 
     list_display = (
@@ -96,6 +96,7 @@ class AcademicGroupAdmin(AdminMixin):
     search_fields = ("number",)
     readonly_fields = ("created_at", "updated_at")
     date_hierarchy = "created_at"
+    fields = ("number",)
 
 
 class StudentResource(resources.ModelResource):
@@ -138,7 +139,7 @@ class StudentAdmin(AdminMixin):
 
     raw_id_fields = ("group",)
 
-    list_display = ("user", "group__number", "telegram_id")
+    list_display = ("user", "group_number", "telegram_id")
     autocomplete_fields = ("user", "group")
     search_fields = (
         "user__first_name",
@@ -152,6 +153,10 @@ class StudentAdmin(AdminMixin):
     readonly_fields = ("created_at", "updated_at")
     date_hierarchy = "created_at"
 
+    @admin.display(description="Номер группы")
+    def group_number(self, obj: Student):
+        return obj.group
+
 
 @admin.register(Department)
 class DepartmentAdmin(AdminMixin):
@@ -161,6 +166,7 @@ class DepartmentAdmin(AdminMixin):
     search_fields = ("name",)
     readonly_fields = ("created_at", "updated_at")
     date_hierarchy = "created_at"
+    fields = ("name",)
 
 
 @admin.register(Subject)
@@ -173,6 +179,7 @@ class SubjectAdmin(AdminMixin):
     list_filter = ("department__name",)
     readonly_fields = ("created_at", "updated_at")
     date_hierarchy = "created_at"
+    fields = ("name", "department")
 
 
 @admin.register(Teacher)
@@ -185,6 +192,7 @@ class TeacherAdmin(AdminMixin):
     list_filter = ("subjects__name", "subjects__department__name")
     readonly_fields = ("created_at", "updated_at")
     date_hierarchy = "created_at"
+    fields = ("user", "subjects")
 
 
 @admin.register(AcademicDifference)
@@ -197,7 +205,7 @@ class AcademicDifferenceAdmin(AdminMixin):
     list_display = (
         "student",
         "subject",
-        "view_department",
+        "subject_department",
         "deadline",
         "is_closed",
     )
@@ -219,12 +227,11 @@ class AcademicDifferenceAdmin(AdminMixin):
     list_editable = ("is_closed",)
     readonly_fields = ("created_at", "updated_at")
     date_hierarchy = "deadline"
+    fields = ("student", "subject", "deadline", "is_closed")
 
-    @admin.display()
-    def view_department(self, obj):
+    @admin.display(description="Кафедра предмета")
+    def subject_department(self, obj: AcademicDifference):
         return obj.subject.department
-
-    view_department.short_description = "Department"
 
 
 @admin.register(AcademicDifferenceFile)
@@ -241,6 +248,8 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
         "download_link",
     )
 
+    list_display_links = ("id", "student")
+
     list_filter = ("state", "created_at", "student__group__number")
 
     search_fields = (
@@ -252,7 +261,7 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at", "updated_at")
 
     fieldsets = (
-        ("Основная информация", {"fields": ("student", "file_id", "file_url")}),
+        ("Основная информация", {"fields": ("student", "file_id")}),
         ("Статус обработки", {"fields": ("state",)}),
         ("Даты", {"fields": ("created_at", "updated_at")}),
     )
@@ -260,9 +269,9 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
     @admin.display(description="Статус", ordering="state")
     def state_colored(self, obj: AcademicDifferenceFile):
         """Отображает статус в виде цветной метки."""
-        if obj.state == obj.FileState.PROCESSED:
+        if obj.state == obj.FileState.APPROVED:
             color = "green"
-        elif obj.state == obj.FileState.ERROR:
+        elif obj.state == obj.FileState.NOT_ACCEPTED:
             color = "red"
         else:
             color = "orange"

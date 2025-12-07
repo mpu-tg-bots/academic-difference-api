@@ -214,8 +214,6 @@ class RegisterStudentSerializer(serializers.Serializer):
     telegram_id = serializers.IntegerField()
     group_number = serializers.CharField(max_length=255)
 
-    file_id = serializers.CharField(max_length=255)
-
     def validate_telegram_id(self, value):
         """
         Проверяем, что студент с таким telegram_id еще не зарегистрирован.

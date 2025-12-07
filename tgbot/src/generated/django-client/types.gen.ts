@@ -41,7 +41,7 @@ export type AcademicGroup = {
     readonly created_at: string;
     readonly updated_at: string;
     /**
-     * Academic Group Number
+     * Номер группы
      */
     number: string;
 };
@@ -51,7 +51,7 @@ export type Department = {
     readonly created_at: string;
     readonly updated_at: string;
     /**
-     * Department Name
+     * Название
      */
     name: string;
 };
@@ -142,7 +142,7 @@ export type PatchedAcademicGroup = {
     readonly created_at?: string;
     readonly updated_at?: string;
     /**
-     * Academic Group Number
+     * Номер группы
      */
     number?: string;
 };
@@ -152,7 +152,7 @@ export type PatchedDepartment = {
     readonly created_at?: string;
     readonly updated_at?: string;
     /**
-     * Department Name
+     * Название
      */
     name?: string;
 };
@@ -168,7 +168,7 @@ export type PatchedStudent = {
     group?: AcademicGroup;
     telegram_id?: number;
     /**
-     * User Settings
+     * Настройки
      */
     settings?: unknown;
 };
@@ -178,7 +178,7 @@ export type PatchedSubject = {
     readonly created_at?: string;
     readonly updated_at?: string;
     /**
-     * Subject Name
+     * Название
      */
     name?: string;
     department?: number;
@@ -205,15 +205,14 @@ export type RegisterStudent = {
     middle_name?: string;
     telegram_id: number;
     group_number: string;
-    file_id: string;
 };
 
 /**
- * * `PENDING` - Ожидает обработки
- * * `PROCESSED` - Обработан
- * * `ERROR` - Ошибка обработки
+ * * `APPROVED` - Подтверждён
+ * * `NOT_ACCEPTED` - Не принят
+ * * `REVIEW` - Рассмотрение
  */
-export type StateEnum = 'PENDING' | 'PROCESSED' | 'ERROR';
+export type StateEnum = 'APPROVED' | 'NOT_ACCEPTED' | 'REVIEW';
 
 /**
  * Сериализатор для Student.
@@ -226,7 +225,7 @@ export type Student = {
     group: AcademicGroup;
     telegram_id: number;
     /**
-     * User Settings
+     * Настройки
      */
     settings?: unknown;
 };
@@ -236,7 +235,7 @@ export type Subject = {
     readonly created_at: string;
     readonly updated_at: string;
     /**
-     * Subject Name
+     * Название
      */
     name: string;
     department: number;
@@ -260,15 +259,27 @@ export type Teacher = {
 export type User = {
     readonly id: number;
     /**
-     * Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+     * Имя пользователя
+     *
+     * Обязательное поле. Не более 150 символов. Только буквы, цифры и символы @/./+/-/_.
      */
     username: string;
+    /**
+     * Имя
+     */
     first_name?: string;
+    /**
+     * Фамилия
+     */
     last_name?: string;
+    /**
+     * Отчество
+     */
     middle_name?: string;
     /**
-     * Staff status
-     * Designates whether the user can log into this admin site.
+     * Статус персонала
+     *
+     * Отметьте, если пользователь может входить в административную часть сайта.
      */
     is_staff?: boolean;
 };
@@ -303,14 +314,14 @@ export type AcademicDifferenceFileWritable = {
 
 export type AcademicGroupWritable = {
     /**
-     * Academic Group Number
+     * Номер группы
      */
     number: string;
 };
 
 export type DepartmentWritable = {
     /**
-     * Department Name
+     * Название
      */
     name: string;
 };
@@ -345,14 +356,14 @@ export type PatchedAcademicDifferenceFileWritable = {
 
 export type PatchedAcademicGroupWritable = {
     /**
-     * Academic Group Number
+     * Номер группы
      */
     number?: string;
 };
 
 export type PatchedDepartmentWritable = {
     /**
-     * Department Name
+     * Название
      */
     name?: string;
 };
@@ -367,14 +378,14 @@ export type PatchedStudentWritable = {
     group_id?: number;
     telegram_id?: number;
     /**
-     * User Settings
+     * Настройки
      */
     settings?: unknown;
 };
 
 export type PatchedSubjectWritable = {
     /**
-     * Subject Name
+     * Название
      */
     name?: string;
     department?: number;
@@ -400,14 +411,14 @@ export type StudentWritable = {
     group_id: number;
     telegram_id: number;
     /**
-     * User Settings
+     * Настройки
      */
     settings?: unknown;
 };
 
 export type SubjectWritable = {
     /**
-     * Subject Name
+     * Название
      */
     name: string;
     department: number;
@@ -429,17 +440,32 @@ export type TeacherWritable = {
  */
 export type UserWritable = {
     /**
-     * Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+     * Имя пользователя
+     *
+     * Обязательное поле. Не более 150 символов. Только буквы, цифры и символы @/./+/-/_.
      */
     username: string;
+    /**
+     * Имя
+     */
     first_name?: string;
+    /**
+     * Фамилия
+     */
     last_name?: string;
+    /**
+     * Отчество
+     */
     middle_name?: string;
     /**
-     * Staff status
-     * Designates whether the user can log into this admin site.
+     * Статус персонала
+     *
+     * Отметьте, если пользователь может входить в административную часть сайта.
      */
     is_staff?: boolean;
+    /**
+     * Пароль
+     */
     password: string;
 };
 
@@ -463,16 +489,17 @@ export type AcademicDifferenceFileListData = {
         search?: string;
         /**
          * Статус
-         * * `PENDING` - Ожидает обработки
-         * * `PROCESSED` - Обработан
-         * * `ERROR` - Ошибка обработки
+         *
+         * * `APPROVED` - Подтверждён
+         * * `NOT_ACCEPTED` - Не принят
+         * * `REVIEW` - Рассмотрение
          */
-        state?: 'ERROR' | 'PENDING' | 'PROCESSED';
+        state?: 'APPROVED' | 'NOT_ACCEPTED' | 'REVIEW';
         /**
-         * Multiple values may be separated by commas.
+         * Несколько значений могут быть разделены запятыми.
          */
         state__in?: Array<string>;
-        student__telegram_id?: number;
+        student__id?: number;
     };
     url: '/api/v1/academic-difference-file/';
 };
@@ -500,7 +527,7 @@ export type AcademicDifferenceFileDestroyData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this файл с расхождениями.
+         * A unique integer value identifying this Файл с РУП.
          */
         id: number;
     };
@@ -521,7 +548,7 @@ export type AcademicDifferenceFileRetrieveData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this файл с расхождениями.
+         * A unique integer value identifying this Файл с РУП.
          */
         id: number;
     };
@@ -539,7 +566,7 @@ export type AcademicDifferenceFilePartialUpdateData = {
     body?: PatchedAcademicDifferenceFileWritable;
     path: {
         /**
-         * A unique integer value identifying this файл с расхождениями.
+         * A unique integer value identifying this Файл с РУП.
          */
         id: number;
     };
@@ -557,7 +584,7 @@ export type AcademicDifferenceFileUpdateData = {
     body: AcademicDifferenceFileWritable;
     path: {
         /**
-         * A unique integer value identifying this файл с расхождениями.
+         * A unique integer value identifying this Файл с РУП.
          */
         id: number;
     };
@@ -626,7 +653,7 @@ export type AcademicDifferencesDestroyData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this academic difference.
+         * A unique integer value identifying this РУП.
          */
         id: number;
     };
@@ -647,7 +674,7 @@ export type AcademicDifferencesRetrieveData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this academic difference.
+         * A unique integer value identifying this РУП.
          */
         id: number;
     };
@@ -665,7 +692,7 @@ export type AcademicDifferencesPartialUpdateData = {
     body?: PatchedAcademicDifferenceWritable;
     path: {
         /**
-         * A unique integer value identifying this academic difference.
+         * A unique integer value identifying this РУП.
          */
         id: number;
     };
@@ -683,7 +710,7 @@ export type AcademicDifferencesUpdateData = {
     body: AcademicDifferenceWritable;
     path: {
         /**
-         * A unique integer value identifying this academic difference.
+         * A unique integer value identifying this РУП.
          */
         id: number;
     };
@@ -742,7 +769,7 @@ export type DepartmentsDestroyData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this department.
+         * A unique integer value identifying this Кафедра.
          */
         id: number;
     };
@@ -763,7 +790,7 @@ export type DepartmentsRetrieveData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this department.
+         * A unique integer value identifying this Кафедра.
          */
         id: number;
     };
@@ -781,7 +808,7 @@ export type DepartmentsPartialUpdateData = {
     body?: PatchedDepartmentWritable;
     path: {
         /**
-         * A unique integer value identifying this department.
+         * A unique integer value identifying this Кафедра.
          */
         id: number;
     };
@@ -799,7 +826,7 @@ export type DepartmentsUpdateData = {
     body: DepartmentWritable;
     path: {
         /**
-         * A unique integer value identifying this department.
+         * A unique integer value identifying this Кафедра.
          */
         id: number;
     };
@@ -858,7 +885,7 @@ export type GroupsDestroyData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this academic group.
+         * A unique integer value identifying this Группа.
          */
         id: number;
     };
@@ -879,7 +906,7 @@ export type GroupsRetrieveData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this academic group.
+         * A unique integer value identifying this Группа.
          */
         id: number;
     };
@@ -897,7 +924,7 @@ export type GroupsPartialUpdateData = {
     body?: PatchedAcademicGroupWritable;
     path: {
         /**
-         * A unique integer value identifying this academic group.
+         * A unique integer value identifying this Группа.
          */
         id: number;
     };
@@ -915,7 +942,7 @@ export type GroupsUpdateData = {
     body: AcademicGroupWritable;
     path: {
         /**
-         * A unique integer value identifying this academic group.
+         * A unique integer value identifying this Группа.
          */
         id: number;
     };
@@ -979,7 +1006,7 @@ export type StudentsDestroyData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this student.
+         * A unique integer value identifying this Студент.
          */
         id: number;
     };
@@ -1000,7 +1027,7 @@ export type StudentsRetrieveData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this student.
+         * A unique integer value identifying this Студент.
          */
         id: number;
     };
@@ -1018,7 +1045,7 @@ export type StudentsPartialUpdateData = {
     body?: PatchedStudentWritable;
     path: {
         /**
-         * A unique integer value identifying this student.
+         * A unique integer value identifying this Студент.
          */
         id: number;
     };
@@ -1036,7 +1063,7 @@ export type StudentsUpdateData = {
     body: StudentWritable;
     path: {
         /**
-         * A unique integer value identifying this student.
+         * A unique integer value identifying this Студент.
          */
         id: number;
     };
@@ -1110,7 +1137,7 @@ export type SubjectsDestroyData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this subject.
+         * A unique integer value identifying this Предмет.
          */
         id: number;
     };
@@ -1131,7 +1158,7 @@ export type SubjectsRetrieveData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this subject.
+         * A unique integer value identifying this Предмет.
          */
         id: number;
     };
@@ -1149,7 +1176,7 @@ export type SubjectsPartialUpdateData = {
     body?: PatchedSubjectWritable;
     path: {
         /**
-         * A unique integer value identifying this subject.
+         * A unique integer value identifying this Предмет.
          */
         id: number;
     };
@@ -1167,7 +1194,7 @@ export type SubjectsUpdateData = {
     body: SubjectWritable;
     path: {
         /**
-         * A unique integer value identifying this subject.
+         * A unique integer value identifying this Предмет.
          */
         id: number;
     };
@@ -1230,7 +1257,7 @@ export type TeachersDestroyData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this teacher.
+         * A unique integer value identifying this Преподаватель.
          */
         id: number;
     };
@@ -1251,7 +1278,7 @@ export type TeachersRetrieveData = {
     body?: never;
     path: {
         /**
-         * A unique integer value identifying this teacher.
+         * A unique integer value identifying this Преподаватель.
          */
         id: number;
     };
@@ -1269,7 +1296,7 @@ export type TeachersPartialUpdateData = {
     body?: PatchedTeacherWritable;
     path: {
         /**
-         * A unique integer value identifying this teacher.
+         * A unique integer value identifying this Преподаватель.
          */
         id: number;
     };
@@ -1287,7 +1314,7 @@ export type TeachersUpdateData = {
     body: TeacherWritable;
     path: {
         /**
-         * A unique integer value identifying this teacher.
+         * A unique integer value identifying this Преподаватель.
          */
         id: number;
     };
