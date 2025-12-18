@@ -45,7 +45,7 @@ const main = async () => {
     const fileList = FileListSceneImpl(djangoClient);
     const fileView = FileViewSceneImpl(djangoClient);
     const fileDelete = FileDeleteSceneImpl(djangoClient);
-    const menu = MenuSceneImpl();
+    const menu = MenuSceneImpl(djangoClient);
 
     const stage = new Scenes.Stage<TGContext>([fileUplaod, fileList, fileView, fileDelete, menu]);
 

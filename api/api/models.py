@@ -217,6 +217,10 @@ class AcademicDifferenceFile(Common):
         verbose_name="Студент",
     )
 
+    name = models.CharField(
+        max_length=255, verbose_name="Название файла", default="Не указано"
+    )
+
     file_id = models.CharField(
         max_length=255, unique=True, verbose_name="Telegram File ID"
     )
@@ -238,5 +242,5 @@ class AcademicDifferenceFile(Common):
 
     def __str__(self):
         return (
-            f"Файл от {self.student.user.username} ({self.get_state_display()})"
+            f"Файл от {self.student.user.username} {self.name} ({self.get_state_display()})"
         )
