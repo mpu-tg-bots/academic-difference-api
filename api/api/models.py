@@ -241,6 +241,7 @@ class AcademicDifferenceFile(Common):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return (
-            f"Файл от {self.student.user.username} {self.name} ({self.get_state_display()})"
-        )
+        u = self.student.user.username
+        n = self.name
+        s = self.get_state_display()
+        return f"Файл от {u} {n} ({s})"
