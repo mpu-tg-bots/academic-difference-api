@@ -113,11 +113,14 @@ const getHelloMessage = () => {
 - Загружать файлы РУПов (/upload)
 - Просматривать текущую информацию по РУПам (/list)
 
-Если у тебя возникнут вопросы по работе бота, ты можешь обратиться к зам. декана факультета ИТ — Даньшиной Марине Владимировне: @mdanshina.  
+Если у тебя возникнут вопросы по работе бота, ты можешь обратиться к зам. декана факультета ИТ — Даньшиной Марине Владимировне: @mdanshina.
 `;
 };
 
-const getFormatErrorMessage = () => {
+const getFormatNameErrorMessage = () => {
+    return `Пожалуйста, укажи ФИО в правильном формате (например, Иванов Иван Иванович).`;
+};
+const getFormatGroupErrorMessage = () => {
     return `Пожалуйста, укажи номер группы в правильном формате (например, 211-321).`;
 };
 
@@ -143,13 +146,13 @@ export const StudentRegisterSceneImpl = (client: Client) => {
             ) {
                 const msg = ctx.text;
                 if (!msg) {
-                    await ctx.reply(getFormatErrorMessage());
+                    await ctx.reply(getFormatNameErrorMessage());
                     return;
                 }
 
                 const parts = msg.split(' ');
                 if (parts.length < 2) {
-                    await ctx.reply(getFormatErrorMessage());
+                    await ctx.reply(getFormatNameErrorMessage());
                     return;
                 }
 
@@ -166,13 +169,13 @@ export const StudentRegisterSceneImpl = (client: Client) => {
             if (!getStudentRegisterWizardState(ctx).group) {
                 const msg = ctx.text;
                 if (!msg) {
-                    await ctx.reply(getFormatErrorMessage());
+                    await ctx.reply(getFormatGroupErrorMessage());
                     return;
                 }
 
                 const parts = msg.split('-');
                 if (parts.length !== 2) {
-                    await ctx.reply(getFormatErrorMessage());
+                    await ctx.reply(getFormatGroupErrorMessage());
                     return;
                 }
 
@@ -180,7 +183,7 @@ export const StudentRegisterSceneImpl = (client: Client) => {
                     const [left, right] = [parseInt(parts[0]), parseInt(parts[1])];
                     getStudentRegisterWizardState(ctx).group = `${left}-${right}`;
                 } catch (_) {
-                    await ctx.reply(getFormatErrorMessage());
+                    await ctx.reply(getFormatGroupErrorMessage());
                     return;
                 }
             }
