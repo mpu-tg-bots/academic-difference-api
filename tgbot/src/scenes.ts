@@ -7,10 +7,8 @@ import {
     FILE_UPLOAD_SCENE,
     FILE_VIEW_SCENE,
     GO_TO_MENU_ACTION,
-    LIST_FILE_ACTION,
     MENU_SCENE,
     STUDENT_REGISTER_SCENE,
-    UPLOAD_FILE_ACTION,
 } from './constants';
 import {type TGContext, getStudent} from './context';
 import {
@@ -59,15 +57,36 @@ export function buildPaginationMarkupButtons<T>(
     return fileButtons;
 }
 
-export const MenuSceneImpl = () => {
+export const MenuSceneImpl = (client: Client) => {
     return new Scenes.WizardScene<TGContext>(MENU_SCENE, async (ctx) => {
-        const {user, group} = getStudent(ctx);
+        const {id, user, group} = getStudent(ctx);
+
+        const {data: fileListData, error: fileListError} = await academicDifferenceFileList({
+            client,
+            query: {student__id: id, page: getPage(ctx.wizard.state)},
+        });
+
+        if (!fileListData) {
+            console.error(fileListError);
+            await ctx.reply('Возникла непредвиденная ошибка! Попробуйте, ещё раз');
+            return ctx.scene.leave();
+        }
+
+        if (!fileListData) {
+            console.error(fileListError);
+            await ctx.reply('Возникла непредвиденная ошибка! Попробуйте, ещё раз');
+            return ctx.scene.leave();
+        }
+
+        const {results: files} = fileListData;
+
         await ctx.reply(
-            `Добро пожаловать, ${user.last_name} ${user.first_name} ${user.middle_name}! Ваша группа ${group.number}\n\nМеню`,
-            Markup.inlineKeyboard([
-                [Markup.button.callback('Список файлов с РУП', LIST_FILE_ACTION)],
-                [Markup.button.callback('Загрузить файл с РУП', UPLOAD_FILE_ACTION)],
-            ]),
+            `Привет, ${user.last_name} ${user.first_name} ${user.middle_name} ${group.number}! 👋
+
+Твои основные возможности:
+${files.length > 0 ? '\n- 📤 Просматривать текущую информацию по РУПам (/list)' : ''}
+- 📋 Загружать файлы РУПов (/upload)
+`,
         );
         return ctx.scene.leave();
     });
@@ -84,13 +103,31 @@ const getStudentRegisterWizardState = (ctx: TGContext) => {
     return ctx.wizard.state as StudentRegisterWizardState;
 };
 
+const getHelloMessage = () => {
+    return `Привет! 👋
+Добро пожаловать в систему управления РУПами. Этот бот создан в рамках проектной деятельности и предназначен для удобной загрузки и управления информацией по твоим РУПам.
+
+📝 Это тестовая версия бота. Мы активно работаем над его функциональностью, и некоторые возможности могут добавляться или изменяться. Ваш фидбек очень важен для нас!
+
+📌 Для начала работы необходимо пройти авторизацию. После этого ты сможешь:
+- Загружать файлы РУПов (/upload)
+- Просматривать текущую информацию по РУПам (/list)
+
+Если у тебя возникнут вопросы по работе бота, ты можешь обратиться к зам. декана факультета ИТ — Даньшиной Марине Владимировне: @mdanshina.  
+`;
+};
+
+const getFormatErrorMessage = () => {
+    return `Пожалуйста, укажи номер группы в правильном формате (например, 211-321).`;
+};
+
 export const StudentRegisterSceneImpl = (client: Client) => {
     return new Scenes.WizardScene<TGContext>(
         STUDENT_REGISTER_SCENE,
         async (ctx) => {
-            await ctx.reply(
-                `Здравствуйте, пройдите, пожалуйста, регистрацию. Введите, пожалуйста, ваше ФИО через пробел. Отчество можно пропустить`,
-            );
+            await ctx.reply(getHelloMessage());
+
+            await ctx.reply(`Давай познакомимся. Как тебя зовут? (Укажи фио полностью)`);
 
             getStudentRegisterWizardState(ctx).firstName = undefined;
             getStudentRegisterWizardState(ctx).lastName = undefined;
@@ -106,13 +143,13 @@ export const StudentRegisterSceneImpl = (client: Client) => {
             ) {
                 const msg = ctx.text;
                 if (!msg) {
-                    await ctx.reply('Неверный формат, попробуйте ещё раз!');
+                    await ctx.reply(getFormatErrorMessage());
                     return;
                 }
 
                 const parts = msg.split(' ');
                 if (parts.length < 2) {
-                    await ctx.reply('Неверный формат, попробуйте ещё раз!');
+                    await ctx.reply(getFormatErrorMessage());
                     return;
                 }
 
@@ -121,7 +158,7 @@ export const StudentRegisterSceneImpl = (client: Client) => {
                 getStudentRegisterWizardState(ctx).middleName = parts[2] || '';
             }
 
-            await ctx.reply(`Введите, пожалуйста, вашу учебную группу. Например 241-3210`);
+            await ctx.reply(`Какой у тебя номер группы? (Например: 211-321)`);
 
             return ctx.wizard.next();
         },
@@ -129,13 +166,13 @@ export const StudentRegisterSceneImpl = (client: Client) => {
             if (!getStudentRegisterWizardState(ctx).group) {
                 const msg = ctx.text;
                 if (!msg) {
-                    await ctx.reply('Неверный формат, попробуйте ещё раз!');
+                    await ctx.reply(getFormatErrorMessage());
                     return;
                 }
 
                 const parts = msg.split('-');
                 if (parts.length !== 2) {
-                    await ctx.reply('Неверный формат, попробуйте ещё раз!');
+                    await ctx.reply(getFormatErrorMessage());
                     return;
                 }
 
@@ -143,7 +180,7 @@ export const StudentRegisterSceneImpl = (client: Client) => {
                     const [left, right] = [parseInt(parts[0]), parseInt(parts[1])];
                     getStudentRegisterWizardState(ctx).group = `${left}-${right}`;
                 } catch (_) {
-                    await ctx.reply('Неверный формат, попробуйте ещё раз!');
+                    await ctx.reply(getFormatErrorMessage());
                     return;
                 }
             }
@@ -166,7 +203,11 @@ export const StudentRegisterSceneImpl = (client: Client) => {
                 return;
             }
 
-            await ctx.reply(`Вы успешно зарегистрировались! Напишите /start, чтобы перейти в меню`);
+            await ctx.reply(`🎉 Регистрация успешно завершена! Спасибо, что заполнил(а) анкету.
+Теперь ты полноценный пользователь системы. Твои основные возможности:
+- 📤 Загрузить РУП – первый шаг к закрытию расхождений. (/upload)
+- 📋 Мои РУПы – просмотр загруженных файлов. (/list)
+`);
 
             await ctx.scene.leave();
         },
@@ -197,7 +238,7 @@ export const FileUploadSceneImpl = (client: Client) => {
 
         if (error) {
             console.error(error);
-            await ctx.reply(`Возникла непредвиденная ошибка, попробуйте ещё раз`);
+            await ctx.reply(`Возникла непредвиденная ошибка, попробуй ещё раз`);
             await ctx.scene.reenter();
             return;
         }
@@ -207,7 +248,7 @@ export const FileUploadSceneImpl = (client: Client) => {
 
     fileHandler.on(message('photo'), async (ctx) => {
         if (!ctx.message.photo.length) {
-            await ctx.reply('Вы не загрузили фото, попробуйте ещё раз!');
+            await ctx.reply('Вы не загрузили фото, попробуй ещё раз!');
             return;
         }
 
@@ -218,7 +259,7 @@ export const FileUploadSceneImpl = (client: Client) => {
 
     fileHandler.on(message('document'), async (ctx) => {
         if (!ctx.message.document) {
-            await ctx.reply('Вы не загрузили документ, попробуйте ещё раз!');
+            await ctx.reply('Вы не загрузили документ, попробуй ещё раз!');
             return;
         }
 
@@ -371,7 +412,7 @@ export const FileDeleteSceneImpl = (client: Client) => {
         }
 
         if (data.state === 'APPROVED') {
-            await ctx.reply('Файл нельзя удалить, его уже подтвердили!');
+            await ctx.reply('Файл нельзя удалить, его уже утвердили!');
             return ctx.scene.enter(FILE_LIST_SCENE);
         }
 

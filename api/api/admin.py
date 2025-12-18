@@ -242,13 +242,14 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
 
     list_display = (
         "id",
+        "name",
         "student",
         "state_colored",
         "created_at",
         "download_link",
     )
 
-    list_display_links = ("id", "student")
+    list_display_links = ("id", "name", "student")
 
     list_filter = ("state", "created_at", "student__group__number")
 
@@ -258,10 +259,10 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
         "file_id",
     )
 
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("file_id", "student", "created_at", "updated_at")
 
     fieldsets = (
-        ("Основная информация", {"fields": ("student", "file_id")}),
+        ("Основная информация", {"fields": ("student", "name", "file_id")}),
         ("Статус обработки", {"fields": ("state",)}),
         ("Даты", {"fields": ("created_at", "updated_at")}),
     )
