@@ -283,7 +283,7 @@ def proxy_telegram_file(request, file_id):
     nodejs_url = f"{settings.BOT_API_BASE_URL}/files/{file_id}/"
 
     try:
-        response = requests.get(nodejs_url, stream=True)
+        response = requests.get(nodejs_url, stream=True, timeout=30)
 
         if response.status_code == 404:
             raise Http404("Файл не найден в Telegram")
