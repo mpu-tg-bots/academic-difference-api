@@ -1,16 +1,16 @@
 """Views для REST API"""
 
-import requests
+from django.conf import settings
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.http import Http404, HttpResponseServerError, StreamingHttpResponse
 from django.utils.crypto import get_random_string
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.conf import settings
-from django.http import StreamingHttpResponse, Http404, HttpResponseServerError
 
+import requests
 from django_filters import rest_framework as filters
 
 from api.models import (

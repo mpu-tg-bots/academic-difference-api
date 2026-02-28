@@ -1,8 +1,8 @@
 """Admin panel settings"""
 
-from django.urls import reverse
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.urls import reverse
 from django.utils.html import format_html
 
 from import_export import fields, resources
