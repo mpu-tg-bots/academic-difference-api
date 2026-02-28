@@ -24,7 +24,7 @@ const main = async () => {
 
     const djangoClient = createClient(
         createConfig({
-            baseUrl: 'http://academic-api:8000',
+            baseUrl: 'http://127.0.0.1:8000',
             headers: {
                 Authorization: `Token ${config.DJANGO_TELEGRAM_BOT_API_TOKEN}`,
                 Accept: 'application/json',
