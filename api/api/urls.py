@@ -10,7 +10,8 @@ from .views import (
     DepartmentViewSet,
     StudentViewSet,
     SubjectViewSet,
-    TeacherViewSet, proxy_telegram_file,
+    TeacherViewSet,
+    proxy_telegram_file,
 )
 
 router = DefaultRouter()
@@ -24,5 +25,9 @@ router.register(r"academic-difference-file", AcademicDifferenceFileViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
-    path('admin/download-file/<str:file_id>/', proxy_telegram_file, name='admin_download_file'),
+    path(
+        "admin/download-file/<str:file_id>/",
+        proxy_telegram_file,
+        name="admin_download_file",
+    ),
 ]

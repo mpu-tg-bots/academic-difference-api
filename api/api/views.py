@@ -1,4 +1,5 @@
 """Views для REST API"""
+
 import requests
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model
@@ -291,16 +292,21 @@ def proxy_telegram_file(request, file_id):
 
         proxy_response = StreamingHttpResponse(
             response.iter_content(chunk_size=8192),
-            content_type=response.headers.get('Content-Type', 'application/octet-stream')
+            content_type=response.headers.get(
+                "Content-Type", "application/octet-stream"
+            ),
         )
 
-        if 'Content-Disposition' in response.headers:
-            proxy_response['Content-Disposition'] = response.headers['Content-Disposition']
+        if "Content-Disposition" in response.headers:
+            proxy_response["Content-Disposition"] = response.headers[
+                "Content-Disposition"
+            ]
 
         return proxy_response
 
     except requests.exceptions.RequestException as e:
         return HttpResponseServerError(f"Ошибка при загрузке файла: {str(e)}")
+
 
 class AcademicDifferenceFileViewSet(viewsets.ModelViewSet):
     """
