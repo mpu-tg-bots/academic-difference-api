@@ -1,6 +1,6 @@
 """Admin panel settings"""
 
-from django.conf import settings
+from django.urls import reverse
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
@@ -287,7 +287,8 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
     def download_link(self, obj: AcademicDifferenceFile):
         """Отображает кликабельную ссылку на файл."""
 
-        safe_url = f"{settings.BOT_API_BASE_URL}/files/{obj.file_id}/"
+        safe_url = reverse('admin_download_file', kwargs={'file_id': obj.file_id})
+
         return format_html(
             '<a href="{}" target="_blank">Скачать</a>',
             safe_url,

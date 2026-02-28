@@ -19,12 +19,20 @@ import {
     StudentRegisterSceneImpl,
 } from './scenes';
 
+const getDjangoHost = () => {
+    try {
+        return new URL(process.env.DJANGO_BASE_URL || '').toString();
+    } catch {
+        return 'http://academic-api:8000';
+    }
+};
+
 const main = async () => {
     const config = getConfig();
 
     const djangoClient = createClient(
         createConfig({
-            baseUrl: 'http://127.0.0.1:8000',
+            baseUrl: getDjangoHost(),
             headers: {
                 Authorization: `Token ${config.DJANGO_TELEGRAM_BOT_API_TOKEN}`,
                 Accept: 'application/json',
