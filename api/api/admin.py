@@ -287,7 +287,9 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
     def download_link(self, obj: AcademicDifferenceFile):
         """Отображает кликабельную ссылку на файл."""
 
-        safe_url = reverse('admin_download_file', kwargs={'file_id': obj.file_id})
+        safe_url = reverse(
+            "admin_download_file", kwargs={"file_id": obj.file_id}
+        )
 
         return format_html(
             '<a href="{}" target="_blank">Скачать</a>',
