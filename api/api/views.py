@@ -1,11 +1,14 @@
 """Views для REST API"""
-
+import requests
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils.crypto import get_random_string
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.conf import settings
+from django.http import StreamingHttpResponse, Http404, HttpResponseServerError
 
 from django_filters import rest_framework as filters
 
@@ -273,6 +276,31 @@ class AcademicDifferenceViewSet(viewsets.ModelViewSet):
         "is_closed",
     ]
 
+
+@staff_member_required
+def proxy_telegram_file(request, file_id):
+    nodejs_url = f"{settings.BOT_API_BASE_URL}/files/{file_id}/"
+
+    try:
+        response = requests.get(nodejs_url, stream=True)
+
+        if response.status_code == 404:
+            raise Http404("Файл не найден в Telegram")
+
+        response.raise_for_status()
+
+        proxy_response = StreamingHttpResponse(
+            response.iter_content(chunk_size=8192),
+            content_type=response.headers.get('Content-Type', 'application/octet-stream')
+        )
+
+        if 'Content-Disposition' in response.headers:
+            proxy_response['Content-Disposition'] = response.headers['Content-Disposition']
+
+        return proxy_response
+
+    except requests.exceptions.RequestException as e:
+        return HttpResponseServerError(f"Ошибка при загрузке файла: {str(e)}")
 
 class AcademicDifferenceFileViewSet(viewsets.ModelViewSet):
     """
