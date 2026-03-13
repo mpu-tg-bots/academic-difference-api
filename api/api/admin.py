@@ -1,10 +1,12 @@
 """Admin panel settings"""
 
-from django.contrib import admin
+from django.conf import settings
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.urls import reverse
 from django.utils.html import format_html
 
+import requests
 from import_export import fields, resources
 from import_export.admin import ExportActionMixin, ImportExportModelAdmin
 from import_export.formats import base_formats
@@ -17,6 +19,7 @@ from .models import (
     AcademicGroup,
     Department,
     Student,
+    StudentNotification,
     Subject,
     Teacher,
     User,
@@ -295,3 +298,64 @@ class AcademicDifferenceFileAdmin(admin.ModelAdmin):
             '<a href="{}" target="_blank">Скачать</a>',
             safe_url,
         )
+
+
+@admin.register(StudentNotification)
+class StudentNotificationAdmin(admin.ModelAdmin):
+    """
+    Student telegram notifications admin
+    """
+
+    list_display = ("id", "text", "status", "created_at")
+    list_display_links = ("id", "text")
+    list_filter = ("status", "created_at")
+    raw_ids_fields = ("target_students",)
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+
+        obj = form.instance
+
+        if obj.status == "sent":
+            tg_ids = set()
+
+            specific_students = obj.target_students.filter(
+                telegram_id__isnull=False
+            )
+
+            tg_ids.update(
+                specific_students.values_list("telegram_id", flat=True)
+            )
+
+            if tg_ids:
+                url = f"{settings.BOT_API_BASE_URL}/notify:batchCreate"
+                payload = {"tg_ids": list(tg_ids), "message": obj.text}
+
+                try:
+                    response = requests.post(url, json=payload, timeout=30)
+                    if response.status_code == 200:
+                        l = len(tg_ids)
+                        msg = f"Успешно передано в бот для {l} студентов."
+                        self.message_user(
+                            request,
+                            msg,
+                            level=messages.SUCCESS,
+                        )
+                    else:
+                        self.message_user(
+                            request,
+                            "Ошибка на стороне Node.js бота.",
+                            level=messages.ERROR,
+                        )
+                except requests.exceptions.RequestException:
+                    self.message_user(
+                        request, "Node.js бот недоступен!", level=messages.ERROR
+                    )
+            else:
+                self.message_user(
+                    request,
+                    "У выбранных студентов нет Telegram ID.",
+                    level=messages.WARNING,
+                )
+                obj.status = "draft"
+                obj.save()
