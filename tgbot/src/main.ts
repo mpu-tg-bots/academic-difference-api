@@ -101,21 +101,21 @@ const main = async () => {
     });
 
     server.post('/notify:batchCreate', async (req, res) => {
-        const {tg_ids, message} = req.body;
+        const {tg_ids: tgIds, message} = req.body;
 
-        if (!tg_ids || !Array.isArray(tg_ids) || !message) {
+        if (!tgIds || !Array.isArray(tgIds) || !message) {
             res.status(400).json({error: 'Неверный формат данных'});
             return;
         }
 
-        res.status(200).json({status: 'queued', count: tg_ids.length});
+        res.status(200).json({status: 'queued', count: tgIds.length});
 
-        console.log(`Начинаем рассылку для ${tg_ids.length} студентов...`);
+        console.info(`Начинаем рассылку для ${tgIds.length} студентов...`);
 
         let successCount = 0;
         let failCount = 0;
 
-        for (const tgId of tg_ids) {
+        for (const tgId of tgIds) {
             try {
                 await bot.telegram.sendMessage(tgId, message);
                 successCount++;
@@ -129,7 +129,7 @@ const main = async () => {
             await sleep(50);
         }
 
-        console.log(`Рассылка завершена. Успешно: ${successCount}, Ошибок: ${failCount}`);
+        console.info(`Рассылка завершена. Успешно: ${successCount}, Ошибок: ${failCount}`);
     });
 
     const port = 3000;
