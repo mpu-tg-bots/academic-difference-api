@@ -245,3 +245,32 @@ class AcademicDifferenceFile(Common):
         n = self.name
         s = self.get_state_display()
         return f"Файл от {u} {n} ({s})"
+
+
+class StudentNotification(Common):
+    """
+    Student telegram notifications
+    """
+
+    text = models.TextField(verbose_name="Текст сообщения")
+
+    target_students = models.ManyToManyField(
+        Student, blank=True, verbose_name="Или выбрать конкретных студентов"
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=[("draft", "Черновик"), ("sent", "Отправлено")],
+        default="draft",
+        verbose_name="Статус",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Ручная рассылка"
+        verbose_name_plural = "Ручные рассылки"
+
+    def __str__(self):
+        time = self.created_at.strftime("%d.%m.%Y")
+        return f"Рассылка от {time} - {self.status}"
