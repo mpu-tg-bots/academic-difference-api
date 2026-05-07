@@ -1,9 +1,2 @@
 export const MENU_SCENE = 'menu_scene';
 export const GO_TO_MENU_ACTION = 'go_to_menu_action';
-export const LIST_FILE_ACTION = 'file_list_action';
-export const UPLOAD_FILE_ACTION = 'file_upload_action';
-export const STUDENT_REGISTER_SCENE = 'student_register';
-export const FILE_UPLOAD_SCENE = 'file_upload';
-export const FILE_LIST_SCENE = 'file_list';
-export const FILE_VIEW_SCENE = 'file_view';
-export const FILE_DELETE_SCENE = 'file_delete';

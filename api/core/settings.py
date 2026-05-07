@@ -28,18 +28,12 @@ if not DEBUG:
 
 INSTALLED_APPS = [
     "api.apps.ApiConfig",
-    "rest_framework",
-    "rest_framework.authtoken",
-    "drf_spectacular",
-    "django_filters",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "simple_history",
-    "import_export",
 ]
 
 MIDDLEWARE = [
@@ -50,7 +44,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -75,8 +68,12 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("POSTGRES_DB"),
+        "USER": config("POSTGRES_USER"),
+        "PASSWORD": config("POSTGRES_PASSWORD"),
+        "HOST": config("POSTGRES_HOST", default="postgres"),
+        "PORT": config("POSTGRES_PORT", default="5432"),
     }
 }
 
@@ -100,36 +97,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTH_USER_MODEL = "api.User"
-
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.TokenAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
-    ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAdminUser",),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_FILTER_BACKENDS": [
-        "django_filters.rest_framework.DjangoFilterBackend",
-        "rest_framework.filters.SearchFilter",
-        "rest_framework.filters.OrderingFilter",
-    ],
-    "DEFAULT_PAGINATION_CLASS": (
-        "rest_framework.pagination.PageNumberPagination"
-    ),
-    "PAGE_SIZE": 32,
-}
-
-SPECTACULAR_SETTINGS = {
-    "TITLE": "Academic Differences API",
-    "DESCRIPTION": "API для управления расхождениями в учебных планах (РУП)",
-    "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": False,
-    "SWAGGER_UI_SETTINGS": {
-        "deepLinking": True,
-        "persistAuthorization": True,
-        "displayOperationId": True,
-    },
-}
 
 LANGUAGE_CODE = "ru-ru"
 
