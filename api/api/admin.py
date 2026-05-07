@@ -3,68 +3,21 @@
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.urls import reverse
-from django.utils.html import format_html
 
 import requests
-from import_export import fields, resources
-from import_export.admin import ExportActionMixin, ImportExportModelAdmin
-from import_export.formats import base_formats
-from import_export.widgets import ForeignKeyWidget
-from simple_history.admin import SimpleHistoryAdmin
 
-from .models import (
-    AcademicDifference,
-    AcademicDifferenceFile,
-    AcademicGroup,
-    Department,
-    Student,
-    StudentNotification,
-    Subject,
-    Teacher,
-    User,
-)
-
-
-class StudentInline(admin.TabularInline):
-    """Inline admin field for student model"""
-
-    model = Student
-
-
-class AdminMixin(SimpleHistoryAdmin, ImportExportModelAdmin, ExportActionMixin):
-    """Admin panel common settings."""
-
-    def get_export_formats(self):
-        formats = (
-            base_formats.CSV,
-            base_formats.XLS,
-            base_formats.XLSX,
-        )
-
-        return [f for f in formats if f().can_export()]
-
-    class Meta:
-        """Admin panel common settings meta."""
-
-        abstract = True
+from .models import StudentNotification, User
 
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    """
-    Класс админки для кастомной модели User.
-    Наследуемся от BaseUserAdmin, чтобы получить все стандартные фичи.
-    """
+    """Админка для кастомной модели User."""
 
     search_fields = ("username", "first_name", "last_name", "middle_name")
 
     fieldsets = (
         (None, {"fields": ("username", "password")}),
-        (
-            "ФИО",
-            {"fields": ("first_name", "middle_name", "last_name")},
-        ),
+        ("ФИО", {"fields": ("first_name", "middle_name", "last_name")}),
         (
             "Права",
             {
@@ -89,273 +42,71 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
-@admin.register(AcademicGroup)
-class AcademicGroupAdmin(AdminMixin):
-    """Admin panel for AcademicGroup model"""
-
-    inlines = (StudentInline,)
-
-    list_display = ("number",)
-    search_fields = ("number",)
-    readonly_fields = ("created_at", "updated_at")
-    date_hierarchy = "created_at"
-    fields = ("number",)
-
-
-class StudentResource(resources.ModelResource):
-    """StudentResource for exporting Student model"""
-
-    # pylint: disable=invalid-name
-    User = fields.Field(
-        column_name="user",
-        attribute="user",
-        widget=ForeignKeyWidget(User, "username"),
-    )
-
-    # pylint: disable=invalid-name
-    Group = fields.Field(
-        column_name="group",
-        attribute="group",
-        widget=ForeignKeyWidget(AcademicGroup, "number"),
-    )
-
-    class Meta:
-        """Meta options for StudentResource"""
-
-        model = Student
-        fields = (
-            "id",
-            "User",
-            "Group",
-            "telegram_id",
-            "settings",
-            "created_at",
-            "updated_at",
-        )
-
-
-@admin.register(Student)
-class StudentAdmin(AdminMixin):
-    """Admin panel for Student model"""
-
-    resource_class = StudentResource
-
-    raw_id_fields = ("group",)
-
-    list_display = ("user", "group_number", "telegram_id")
-    autocomplete_fields = ("user", "group")
-    search_fields = (
-        "user__first_name",
-        "user__last_name",
-        "user__username",
-        "user__email",
-        "group__number",
-        "telegram_id",
-    )
-    list_filter = ("group__number",)
-    readonly_fields = ("created_at", "updated_at")
-    date_hierarchy = "created_at"
-
-    @admin.display(description="Номер группы")
-    def group_number(self, obj: Student):
-        return obj.group
-
-
-@admin.register(Department)
-class DepartmentAdmin(AdminMixin):
-    """Admin panel for Department model"""
-
-    list_display = ("name",)
-    search_fields = ("name",)
-    readonly_fields = ("created_at", "updated_at")
-    date_hierarchy = "created_at"
-    fields = ("name",)
-
-
-@admin.register(Subject)
-class SubjectAdmin(AdminMixin):
-    """Admin panel for Subject model"""
-
-    list_display = ("name", "department")
-    autocomplete_fields = ("department",)
-    search_fields = ("name",)
-    list_filter = ("department__name",)
-    readonly_fields = ("created_at", "updated_at")
-    date_hierarchy = "created_at"
-    fields = ("name", "department")
-
-
-@admin.register(Teacher)
-class TeacherAdmin(AdminMixin):
-    """Admin panel for Teacher model"""
-
-    list_display = ("user",)
-    filter_horizontal = ("subjects",)
-    autocomplete_fields = ("user",)
-    list_filter = ("subjects__name", "subjects__department__name")
-    readonly_fields = ("created_at", "updated_at")
-    date_hierarchy = "created_at"
-    fields = ("user", "subjects")
-
-
-@admin.register(AcademicDifference)
-class AcademicDifferenceAdmin(AdminMixin):
-    """Admin panel for AcademicDifference model"""
-
-    def get_export_queryset(self, request):
-        return AcademicDifference.objects.filter(is_closed=False)
-
-    list_display = (
-        "student",
-        "subject",
-        "subject_department",
-        "deadline",
-        "is_closed",
-    )
-    list_display_links = ("student",)
-    list_filter = (
-        "is_closed",
-        "deadline",
-        "subject__department__name",
-    )
-    search_fields = (
-        "student__user__first_name",
-        "student__user__last_name",
-        "student__user__username",
-        "student__user__email",
-        "student__group__number",
-        "subject__name",
-    )
-    autocomplete_fields = ("student", "subject")
-    list_editable = ("is_closed",)
-    readonly_fields = ("created_at", "updated_at")
-    date_hierarchy = "deadline"
-    fields = ("student", "subject", "deadline", "is_closed")
-
-    @admin.display(description="Кафедра предмета")
-    def subject_department(self, obj: AcademicDifference):
-        return obj.subject.department
-
-
-@admin.register(AcademicDifferenceFile)
-class AcademicDifferenceFileAdmin(admin.ModelAdmin):
-    """
-    Интерфейс администрирования для модели файлов с расхождениями.
-    """
+@admin.register(StudentNotification)
+class StudentNotificationAdmin(admin.ModelAdmin):
+    """Админка для управления рассылками в Telegram."""
 
     list_display = (
         "id",
-        "name",
-        "student",
-        "state_colored",
+        "short_text",
+        "recipient_count",
+        "status",
         "created_at",
-        "download_link",
     )
-
-    list_display_links = ("id", "name", "student")
-
-    list_filter = ("state", "created_at", "student__group__number")
-
-    search_fields = (
-        "student__user__username",
-        "student__user__last_name",
-        "file_id",
-    )
-
-    readonly_fields = ("file_id", "student", "created_at", "updated_at")
-
-    fieldsets = (
-        ("Основная информация", {"fields": ("student", "name", "file_id")}),
-        ("Статус обработки", {"fields": ("state",)}),
-        ("Даты", {"fields": ("created_at", "updated_at")}),
-    )
-
-    @admin.display(description="Статус", ordering="state")
-    def state_colored(self, obj: AcademicDifferenceFile):
-        """Отображает статус в виде цветной метки."""
-        if obj.state == obj.FileState.APPROVED:
-            color = "green"
-        elif obj.state == obj.FileState.NOT_ACCEPTED:
-            color = "red"
-        else:
-            color = "orange"
-
-        return format_html(
-            '<span style="color: {}; font-weight: bold;">{}</span>',
-            color,
-            obj.get_state_display(),
-        )
-
-    @admin.display(description="Ссылка на файл")
-    def download_link(self, obj: AcademicDifferenceFile):
-        """Отображает кликабельную ссылку на файл."""
-
-        safe_url = reverse(
-            "admin_download_file", kwargs={"file_id": obj.file_id}
-        )
-
-        return format_html(
-            '<a href="{}" target="_blank">Скачать</a>',
-            safe_url,
-        )
-
-
-@admin.register(StudentNotification)
-class StudentNotificationAdmin(admin.ModelAdmin):
-    """
-    Student telegram notifications admin
-    """
-
-    list_display = ("id", "text", "status", "created_at")
-    list_display_links = ("id", "text")
+    list_display_links = ("id", "short_text")
     list_filter = ("status", "created_at")
-    raw_ids_fields = ("target_students",)
+    readonly_fields = ("created_at",)
 
-    def save_related(self, request, form, formsets, change):
-        super().save_related(request, form, formsets, change)
+    fields = ("text", "tg_ids", "status", "created_at")
 
-        obj = form.instance
+    @admin.display(description="Текст")
+    def short_text(self, obj: StudentNotification):
+        return obj.text[:60] + "..." if len(obj.text) > 60 else obj.text
 
-        if obj.status == "sent":
-            tg_ids = set()
+    @admin.display(description="Получателей")
+    def recipient_count(self, obj: StudentNotification):
+        ids = obj.tg_ids if isinstance(obj.tg_ids, list) else []
+        return len(ids)
 
-            specific_students = obj.target_students.filter(
-                telegram_id__isnull=False
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+
+        if obj.status != "sent":
+            return
+
+        tg_ids = obj.tg_ids if isinstance(obj.tg_ids, list) else []
+
+        if not tg_ids:
+            self.message_user(
+                request,
+                "Список Telegram ID пуст — рассылка не отправлена.",
+                level=messages.WARNING,
             )
+            obj.status = "draft"
+            obj.save(update_fields=["status"])
+            return
 
-            tg_ids.update(
-                specific_students.values_list("telegram_id", flat=True)
-            )
+        bot_url = f"{settings.BOT_API_BASE_URL}/notify:batchCreate"
+        payload = {"tg_ids": tg_ids, "message": obj.text}
 
-            if tg_ids:
-                url = f"{settings.BOT_API_BASE_URL}/notify:batchCreate"
-                payload = {"tg_ids": list(tg_ids), "message": obj.text}
-
-                try:
-                    response = requests.post(url, json=payload, timeout=30)
-                    if response.status_code == 200:
-                        l = len(tg_ids)
-                        msg = f"Успешно передано в бот для {l} студентов."
-                        self.message_user(
-                            request,
-                            msg,
-                            level=messages.SUCCESS,
-                        )
-                    else:
-                        self.message_user(
-                            request,
-                            "Ошибка на стороне Node.js бота.",
-                            level=messages.ERROR,
-                        )
-                except requests.exceptions.RequestException:
-                    self.message_user(
-                        request, "Node.js бот недоступен!", level=messages.ERROR
-                    )
+        try:
+            response = requests.post(bot_url, json=payload, timeout=30)
+            if response.status_code == 200:
+                self.message_user(
+                    request,
+                    f"Рассылка передана боту для {len(tg_ids)} получателей.",
+                    level=messages.SUCCESS,
+                )
             else:
                 self.message_user(
                     request,
-                    "У выбранных студентов нет Telegram ID.",
-                    level=messages.WARNING,
+                    f"Ошибка на стороне бота: HTTP {response.status_code}.",
+                    level=messages.ERROR,
                 )
-                obj.status = "draft"
-                obj.save()
+        except requests.exceptions.RequestException:
+            self.message_user(
+                request,
+                "Бот недоступен. Проверьте BOT_API_BASE_URL"
+                " и состояние контейнера.",
+                level=messages.ERROR,
+            )

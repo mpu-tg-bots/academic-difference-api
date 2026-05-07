@@ -1,5 +1,3 @@
-import {Writable} from 'node:stream';
-
 import express from 'express';
 import {Scenes, Telegraf, session} from 'telegraf';
 
@@ -7,22 +5,17 @@ import {actions} from './actions';
 import {StudentComposerImpl} from './composers';
 import {getConfig} from './config';
 import {type TGContext} from './context';
-import {createClient, createConfig} from './generated/django-client/client';
+import * as admin from './generated/admin-api/client';
+import * as vacant from './generated/vacant-api/client';
 import {auth} from './middleware';
-import {
-    FileDeleteSceneImpl,
-    FileListSceneImpl,
-    FileUploadSceneImpl,
-    FileViewSceneImpl,
-    MenuSceneImpl,
-    StudentRegisterSceneImpl,
-} from './scenes';
+import {MenuSceneImpl} from './scenes';
 
-const getDjangoHost = () => {
+const getBaseUrl = (envValue: string | undefined, defaultValue: string): string => {
+    if (!envValue) return defaultValue;
     try {
-        return new URL(process.env.DJANGO_BASE_URL || '').toString();
+        return new URL(envValue).toString();
     } catch {
-        return 'http://academic-api:8000';
+        return defaultValue;
     }
 };
 
@@ -31,11 +24,21 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const main = async () => {
     const config = getConfig();
 
-    const djangoClient = createClient(
-        createConfig({
-            baseUrl: getDjangoHost(),
+    const adminApiClient = admin.createClient(
+        admin.createConfig({
+            baseUrl: getBaseUrl(config.ADMIN_API_BASE_URL, 'https://admin.kd.mospolytech.ru'),
             headers: {
-                Authorization: `Token ${config.DJANGO_TELEGRAM_BOT_API_TOKEN}`,
+                Authorization: `Bearer ${config.ADMIN_API_TOKEN}`,
+                Accept: 'application/json',
+            },
+        }),
+    );
+
+    const vacantApiClient = vacant.createClient(
+        vacant.createConfig({
+            baseUrl: getBaseUrl(config.VACANT_API_BASE_URL, 'https://vm.mospolytech.ru'),
+            headers: {
+                Authorization: `Bearer ${config.VACANT_API_TOKEN}`,
                 Accept: 'application/json',
             },
         }),
@@ -43,22 +46,11 @@ const main = async () => {
 
     const bot = new Telegraf<TGContext>(config.TELEGRAM_BOT_TOKEN);
 
-    const studentRegister = StudentRegisterSceneImpl(djangoClient);
-
-    const unauthorizedStage = new Scenes.Stage<TGContext>([studentRegister]);
+    const menu = MenuSceneImpl(vacantApiClient);
+    const stage = new Scenes.Stage<TGContext>([menu]);
 
     bot.use(session());
-    bot.use(unauthorizedStage.middleware());
-
-    const fileUplaod = FileUploadSceneImpl(djangoClient);
-    const fileList = FileListSceneImpl(djangoClient);
-    const fileView = FileViewSceneImpl(djangoClient);
-    const fileDelete = FileDeleteSceneImpl(djangoClient);
-    const menu = MenuSceneImpl(djangoClient);
-
-    const stage = new Scenes.Stage<TGContext>([fileUplaod, fileList, fileView, fileDelete, menu]);
-
-    bot.use(auth(djangoClient));
+    bot.use(auth(adminApiClient, config.LINK_TELEGRAM_ACCOUNT_URL));
     bot.use(stage.middleware());
     bot.use(StudentComposerImpl());
     actions(bot);
@@ -71,33 +63,6 @@ const main = async () => {
 
     server.get('/health', (_req, res) => {
         res.status(200).end();
-    });
-
-    server.get(`/files/:id`, async (req, res) => {
-        const {id} = req.params;
-        try {
-            const fileLink = await bot.telegram.getFileLink(id);
-            const file = await fetch(fileLink.toString());
-
-            if (!file.ok || !file.body) {
-                res.status(404).send('File not found');
-                return;
-            }
-
-            const rawName = fileLink.pathname.split('/').pop() || 'file';
-            const fileName = decodeURIComponent(rawName);
-
-            res.setHeader(
-                'Content-type',
-                file.headers.get('content-type') || 'application/octet-stream',
-            );
-            res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-
-            await file.body.pipeTo(Writable.toWeb(res));
-        } catch (err) {
-            console.error('File download error: ', err);
-            res.status(500).send('Interval server Error');
-        }
     });
 
     server.post('/notify:batchCreate', async (req, res) => {

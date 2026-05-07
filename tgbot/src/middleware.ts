@@ -1,36 +1,43 @@
 import {type MiddlewareFn} from 'telegraf';
 
-import {STUDENT_REGISTER_SCENE} from './constants';
 import {type TGContext} from './context';
-import {studentsList} from './generated/django-client';
-import {type Client} from './generated/django-client/client';
+import {
+    type HttpException,
+    getUserByMessengerApiV1MessengersUserMessengerTypeMessengerUserIdGet,
+} from './generated/admin-api';
+import {type Client as AdminApiClient} from './generated/admin-api/client';
+
+const MESSENGER_NOT_FOUND = 'messenger not found';
 
 export const auth =
-    (client: Client): MiddlewareFn<TGContext> =>
+    (adminClient: AdminApiClient, linkUrl: string): MiddlewareFn<TGContext> =>
     async (ctx, next) => {
         const telegramId = ctx.from?.id;
         if (!telegramId) return next();
 
-        const {data: studentListData, error: studentListError} = await studentsList({
-            client,
-            query: {telegram_id: ctx.from.id},
-        });
+        const {data: user, error} =
+            await getUserByMessengerApiV1MessengersUserMessengerTypeMessengerUserIdGet({
+                client: adminClient,
+                path: {
+                    messenger_type: 'telegram',
+                    messenger_user_id: String(telegramId),
+                },
+            });
 
-        if (!studentListData) {
-            console.error(studentListError);
+        if (error) {
+            const httpError = error as HttpException;
+            if (httpError.errors === MESSENGER_NOT_FOUND) {
+                await ctx.reply(
+                    `Для использования бота необходимо привязать Telegram-аккаунт.\n\nПерейдите по ссылке для привязки: ${linkUrl}`,
+                );
+                return;
+            }
+
+            console.error(error);
             await ctx.reply('Возникла непредвиденная ошибка! Попробуйте, ещё раз');
             return;
         }
 
-        const {results: users} = studentListData;
-
-        if (!users.length) {
-            return ctx.scene.enter(STUDENT_REGISTER_SCENE);
-        }
-
-        const [student] = users;
-
-        ctx.state.student = student as TGContext['state']['student'];
-
+        ctx.state.user = user;
         return next();
     };
